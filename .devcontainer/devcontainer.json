@@ -1,7 +1,6 @@
 {
     "name": "Python 3",
     "image": "mcr.microsoft.com/devcontainers/python:1-3.12",
-
     "customizations": {
         "vscode": {
             "settings": {
@@ -10,10 +9,16 @@
                 "files.autoSave": "afterDelay",
                 "files.autoSaveDelay": 3000,
                 "python.formatting.provider": "black",
-                "python.formatting.blackArgs": ["--line-length", "88"],
+                "python.formatting.blackArgs": [
+                    "--line-length",
+                    "88"
+                ],
                 "python.linting.enabled": true,
                 "python.linting.pylintEnabled": true,
-                "python.sortImports.args": ["--profile", "black"]
+                "python.sortImports.args": [
+                    "--profile",
+                    "black"
+                ]
             },
             "extensions": [
                 "streetsidesoftware.code-spell-checker",
@@ -42,16 +47,13 @@
             ]
         }
     },
-
     "portsAttributes": {
         "9000": {
             "label": "Hello Remote World",
             "onAutoForward": "notify"
         }
     },
-
-    "postCreateCommand": "pip3 install -r requirements.txt black isort"
-
+    "postCreateCommand": "pip3 install -r requirements.txt"
     // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
     // "remoteUser": "root"
 }
