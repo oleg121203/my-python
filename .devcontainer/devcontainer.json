@@ -20,7 +20,8 @@
                     "black"
                 ],
                 "git.user.name": "Oleg Kizyma",
-                "git.user.email": "oleg1203@gmail.com"
+                "git.user.email": "oleg1203@gmail.com",
+                "continue.previewMode": true
             },
             "extensions": [
                 "streetsidesoftware.code-spell-checker",
