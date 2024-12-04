@@ -1,0 +1,337 @@
+як добавити використання моделі яку я тобі дав і ссилку граціо ось тут
+
+{
+
+ "models": [
+
+ {
+
+"title": "Qwen2.5 Coder 7B",
+
+"provider": "ollama",
+
+"model": "qwen2.5-coder:7b",
+
+"apiBase": "http://172.17.0.1:11434",
+
+"contextLength": 8192,
+
+"completionOptions": {
+
+"temperature": 0.7,
+
+"maxTokens": 2048
+
+ }
+
+ },
+
+ {
+
+"title": "DeepSeek Coder v2",
+
+"provider": "ollama",
+
+"model": "deepseek-coder-v2:latest",
+
+"apiBase": "http://172.17.0.1:11434",
+
+"contextLength": 8192,
+
+"completionOptions": {
+
+"temperature": 0.7,
+
+"maxTokens": 2048
+
+ }
+
+ },
+
+ {
+
+"title": "Qwen2.5 Coder 1.5B",
+
+"provider": "ollama",
+
+"model": "qwen2.5-coder:1.5b",
+
+"apiBase": "http://172.17.0.1:11434",
+
+"contextLength": 4096,
+
+"completionOptions": {
+
+"temperature": 0.7,
+
+"maxTokens": 1024
+
+ }
+
+ },
+
+ {
+
+"title": "LLaMA 3.1",
+
+"provider": "ollama",
+
+"model": "llama3.1:latest",
+
+"apiBase": "http://172.17.0.1:11434",
+
+"contextLength": 4096,
+
+"completionOptions": {
+
+"temperature": 0.7,
+
+"maxTokens": 1024
+
+ }
+
+ },
+
+ {
+
+"apiKey": "5zf35HswuA5lqre8BbtIO50gktY8EB1o",
+
+"title": "Codestral Mamba",
+
+"model": "codestral-mamba-latest",
+
+"provider": "mistral"
+
+ },
+
+ {
+
+"apiKey": "5zf35HswuA5lqre8BbtIO50gktY8EB1o",
+
+"title": "Mistral Large",
+
+"model": "mistral-large-latest",
+
+"provider": "mistral"
+
+ },
+
+ {
+
+"apiKey": "5zf35HswuA5lqre8BbtIO50gktY8EB1o",
+
+"title": "Mistral 8x22B",
+
+"model": "open-mixtral-8x22b",
+
+"provider": "mistral"
+
+ },
+
+ {
+
+"apiKey": "5zf35HswuA5lqre8BbtIO50gktY8EB1o",
+
+"title": "Mixtral 8x7B",
+
+"model": "open-mixtral-8x7b",
+
+"provider": "mistral"
+
+ },
+
+ {
+
+"title": "DeepSeek Coder",
+
+"model": "deepseek-coder",
+
+"contextLength": 128000,
+
+"apiKey": "5zf35HswuA5lqre8BbtIO50gktY8EB1o",
+
+"provider": "deepseek"
+
+ }
+
+ ],
+
+"tabAutocompleteModel": {
+
+"title": "Qwen2.5 Coder 7B Autocomplete",
+
+"provider": "ollama",
+
+"model": "qwen2.5-coder:7b",
+
+"apiBase": "http://172.17.0.1:11434"
+
+ },
+
+"tabAutocompleteOptions": {
+
+"debounceDelay": 300,
+
+"maxPromptTokens": 500,
+
+"disableInFiles": [
+
+"*.md",
+
+"*.txt"
+
+ ]
+
+ },
+
+"embeddingsProvider": {
+
+"provider": "ollama",
+
+"model": "nomic-embed-text:latest",
+
+"apiBase": "http://172.17.0.1:11434",
+
+"maxChunkSize": 256,
+
+"maxBatchSize": 5
+
+ },
+
+"completionOptions": {
+
+"stream": true,
+
+"temperature": 0.7,
+
+"maxTokens": 2048
+
+ },
+
+"requestOptions": {
+
+"timeout": 7200,
+
+"verifySsl": false
+
+ },
+
+"contextProviders": [
+
+ {
+
+"name": "code",
+
+"params": {}
+
+ },
+
+ {
+
+"name": "docs",
+
+"params": {}
+
+ },
+
+ {
+
+"name": "diff",
+
+"params": {}
+
+ },
+
+ {
+
+"name": "open",
+
+"params": {}
+
+ }
+
+ ],
+
+"customCommands": [
+
+ {
+
+"name": "Створити Тести",
+
+"prompt": "Напиши набір юніт-тестів для вибраного коду. Забезпеч повне покриття та врахуй крайні випадки.",
+
+"description": "Генерація юніт-тестів для виділеного коду"
+
+ },
+
+ {
+
+"name": "Оптимізувати Код",
+
+"prompt": "Оптимізуй виділений код для покращення продуктивності та читабельності.",
+
+"description": "Оптимізація виділеного коду"
+
+ }
+
+ ],
+
+"slashCommands": [
+
+ {
+
+"name": "commit",
+
+"description": "Згенерувати повідомлення коміту"
+
+ },
+
+ {
+
+"name": "cmd",
+
+"description": "Згенерувати команду для терміналу"
+
+ },
+
+ {
+
+"name": "review",
+
+"description": "Зробити рев'ю коду"
+
+ }
+
+ ],
+
+"experimental": {
+
+"modelRoles": {
+
+"inlineEdit": "Qwen2.5 Coder 1.5B"
+
+ },
+
+"readResponseTTS": false,
+
+"useChromiumForDocsCrawling": true
+
+ },
+
+"ui": {
+
+"codeBlockToolbarPosition": "bottom",
+
+"fontSize": 14,
+
+"displayRawMarkdown": false
+
+ },
+
+"allowAnonymousTelemetry": false,
+
+"disableSessionTitles": false,
+
+"systemMessage": "Ви працюєте з оптимізованим конфігураційним файлом для покращеної продуктивності."
+
+}

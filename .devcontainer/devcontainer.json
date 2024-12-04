@@ -18,7 +18,9 @@
                 "python.sortImports.args": [
                     "--profile",
                     "black"
-                ]
+                ],
+                "git.user.name": "Oleg Kizyma",
+                "git.user.email": "oleg1203@gmail.com"
             },
             "extensions": [
                 "streetsidesoftware.code-spell-checker",
