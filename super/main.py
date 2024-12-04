@@ -25,21 +25,15 @@ if __name__ == '__main__':
             super().__init__(command_prefix='/', intents=intents)
 
         async def setup_hook(self):
-            super().__init__(command_prefix='/', intents=intents)
-        
-
-        async def setup_hook(self):
             await self.add_cog(Model1(self))
-        
 
         async def on_ready(self):
             print(f"Бот запущено! Ім'я користувача: {self.user.name}")
-    
 
     class Model1(commands.Cog):
         def __init__(self, bot):
             self.bot = bot
-            
+
         def read_questions(self, file_name):
             try:
                 with open(file_name, 'r') as f:
@@ -53,32 +47,23 @@ if __name__ == '__main__':
                 if ':' not in аргументи:
                     await ctx.send("Використання: /програма <тема>:<модель1>,<модель2>")
                     return
-                    
+
                 тема, моделі = аргументи.split(':', 1)
                 questions_file = os.path.join(PROJECT_DIR, 'src', 'questions.txt')
                 questions = self.read_questions(questions_file)
-                
-                
+
             except ValueError:
                 await ctx.send("Використання: /програма <тема>:<модель1>,<модель2>")
 
         @commands.command(name='спор')
         async def спор_command(self, ctx, *, промт: str):
             await спор(ctx, промт)
-    
 
-    
-    
+    bot = Bot()
 
-    
+    try:
         bot.run(token)
     except discord.errors.LoginFailure:
-        print("Помилка: Неправильний токен. Перевірте файл token.txt")
+        print("Помилка: Неправильний токен. Пер��вірте файл token.txt")
     except Exception as e:
-        print(f"Помилка: {e}")
-
-        print(f"Помилка: {e}")
-
-        print(f"Помилка: {e}")
-        print(f"Помилка: {e}")
         print(f"Помилка: {e}")
