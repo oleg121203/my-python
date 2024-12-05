@@ -8,8 +8,7 @@ async def process_model_response(ctx, topic: str, model: str, model_answers: dic
     """Asynchronous processing of a single model's response"""
     model = model.strip()
     answer_data = answers.get(topic, {}).get(model, {})
-    model = model
-    if answer_data:
+    
     if answer_data:
         answer = answer_data.get("answer")
         if question:
@@ -20,12 +19,13 @@ async def process_model_response(ctx, topic: str, model: str, model_answers: dic
             await ctx.send(f"Модель {model}: {answer}")
     else:
         await ctx.send(f"Модель {model} не може відповісти на питання з теми '{topic}'.")
-    if answer
-    return model_answers
+    
     return model_answers
 
-
+async def спор(ctx, промт: str):
+    """Main спор function implementation"""
     try:
+        models_list = None
         if ':' in промт:
             промт, models_list = промт.split(':', 1)
         
@@ -62,7 +62,4 @@ async def process_model_response(ctx, topic: str, model: str, model_answers: dic
 
     except Exception as e:
         await ctx.send(f"❌ Помилка: {str(e)}")
-        await ctx.send("Використання: /спор <тема> або /спор <тема>:<модель1>,<модель2>")
-        await ctx.send("Використання: /спор <тема> або /спор <тема>:<модель1>,<модель2>")
-        await ctx.send("Використання: /спор <тема> або /спор <тема>:<модель1>,<модель2>")
         await ctx.send("Використання: /спор <тема> або /спор <тема>:<модель1>,<модель2>")
