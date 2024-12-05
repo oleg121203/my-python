@@ -792,18 +792,26 @@ def create_admin():
         db.session.commit()
 
 
-from app import create_app, db
-from app.models import User
+from app import create_app
+from app.models import db, User
 
 app = create_app()
 
-# Создаем базу данных и админа при первом запуске
-with app.app_context():
-    if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', is_admin=True)
-        admin.set_password('admin')
-        db.session.add(admin)
-        db.session.commit()
-
 if __name__ == '__main__':
+    with app.app_context():
+        # Проверяем подключение к БД и наличие таблиц
+        try:
+            db.create_all()
+            print("Database tables created successfully")
+            
+            # Создаем тестового пользователя если его нет
+            if not User.query.filter_by(username='admin').first():
+                admin = User(username='admin', is_admin=True)
+                admin.set_password('admin')
+                db.session.add(admin)
+                db.session.commit()
+                print("Admin user created successfully")
+        except Exception as e:
+            print(f"Error initializing database: {e}")
+    
     app.run(debug=True)

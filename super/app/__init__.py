@@ -1,5 +1,7 @@
 from flask import Flask
 from flask_login import LoginManager
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 from .models import db, User
 import os
 
@@ -25,14 +27,16 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
     
-    # Create tables
+    # Create database and admin user
     with app.app_context():
-        db.create_all()
-        # Create admin user if not exists
+        db.create_all()  # Создаем все таблицы
+        
+        # Создаем admin пользователя если его нет
         if not User.query.filter_by(username='admin').first():
             admin = User(username='admin', is_admin=True)
             admin.set_password('admin')
             db.session.add(admin)
             db.session.commit()
+            print('Admin user created successfully')
     
     return app
