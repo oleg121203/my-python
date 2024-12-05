@@ -1,0 +1,36 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title">Статистика спорів</h3>
+                
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3">
+                            <h5>Загальна статистика</h5>
+                            <p class="mb-2">Всього спорів: {{ stats.total_debates }}</p>
+                            <p class="mb-2">Активних спорів: {{ stats.active_debates }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="border rounded p-3">
+                            <h5>Використання моделей</h5>
+                            {% for model, count in stats.model_usage.items() %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>{{ model }}</span>
+                                <span class="badge bg-primary">{{ count }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
