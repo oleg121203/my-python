@@ -1,0 +1,42 @@
+/* Добавляем новые стили */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, var(--success-color), #2E7D32);
+}
+
+/* Анимации */
+.debate-item-enter {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.debate-item-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+/* Улучшенные компоненты */
+.status-badge {
+    position: relative;
+    padding-left: 20px;
+}
+
+.status-badge::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-badge.active::before {
+    background-color: var(--success-color);
+    box-shadow: 0 0 10px var(--success-color);
+}

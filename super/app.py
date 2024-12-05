@@ -552,4 +552,24 @@ def debate_history_page():
                          title='Історія спорів',
                          debates=sorted_debates)
 
+@app.route('/api/debates/active')
+def get_active_debates():
+    active_debates = [
+        {'id': k, **v} 
+        for k, v in debate_history.items() 
+        if isinstance(k, int) and v.get('status') == 'active'
+    ]
+    return jsonify(active_debates)
+
+@app.route('/api/debates/<int:debate_id>/stop', methods=['POST'])
+def stop_debate(debate_id):
+    if debate_id in debate_history:
+        debate_history[debate_id]['status'] = 'completed'
+        socketio.emit('debate_update', {
+            'type': 'stop',
+            'debate_id': debate_id
+        })
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'error': 'Debate not found'}), 404
+
 # ...rest of existing code...
