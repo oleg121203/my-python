@@ -64,15 +64,14 @@
     "mounts": [
         "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
     ],
-    "postCreateCommand": [
-        "/usr/local/bin/python3 -m pip install --user --upgrade pip",
-        "/usr/local/bin/python3 -m pip install --user -r requirements.txt",
-        "/usr/local/bin/python3 -m pip install --user -r src/requirements.txt",
-        "chmod 600 ~/.ssh/id_rsa",
-        "chmod 644 ~/.ssh/id_rsa.pub",
-        "eval \"$(ssh-agent -s)\"",
-        "ssh-add ~/.ssh/id_rsa",
-        "git config --global user.name 'Oleg Kizyma'",
-        "git config --global user.email 'oleg1203@gmail.com'"
-    ]
+    "postCreateCommand": "/bin/bash -c '\
+    python3 -m pip install --user --upgrade pip && \
+    pip install --user -r requirements.txt && \
+    pip install --user -r src/requirements.txt && \
+    chmod 600 ~/.ssh/id_rsa && \
+    chmod 644 ~/.ssh/id_rsa.pub && \
+    eval \"$(ssh-agent -s)\" && \
+    ssh-add ~/.ssh/id_rsa && \
+    git config --global user.name \"Oleg Kizyma\" && \
+    git config --global user.email \"oleg1203@gmail.com\"'"
 }
