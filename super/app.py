@@ -22,26 +22,51 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from models import db, User
 
-app = Flask(__name__)
-app.config.from_object(Config)
 
-# Configure CORS
-CORS(app,
-     resources={r"/*": {"origins": "*"}},
-     supports_credentials=True
-     )
+def create_app(config_class=Config):
+    app = Flask(__name__)
+    app.config.from_object(config_class)
 
-# Update SocketIO configuration
-socketio = SocketIO(
-    app,
-    async_mode='eventlet',
-    logger=True,
-    engineio_logger=True,
-    ping_timeout=60
-)
+    # Initialize extensions
+    db.init_app(app)
+    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
-# Удаляем неиспользуемую строку
-# csrf = CSRFProtect(app)
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'login'
+
+    # Initialize admin
+    admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
+    admin.add_view(SecureModelView(User, db.session))
+
+    # Initialize SocketIO
+    socketio = SocketIO(
+        app,
+        async_mode='eventlet',
+        logger=True,
+        engineio_logger=True,
+        ping_timeout=60
+    )
+
+    # Register routes here
+    # ...existing code...
+
+    return app, socketio
+
+
+from flask_admin.contrib.sqla import ModelView
+from flask_login import current_user
+
+class SecureModelView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.is_admin
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('auth.login'))
+
+# ...existing code...
+
+app, socketio = create_app(Config)
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(PROJECT_DIR, 'token.txt')
@@ -61,7 +86,7 @@ intents.presences = True
 intents.guilds = True
 intents.messages = True
 
-# Базовый HTML шаблон
+# Базовый HTML ш��блон
 BASE_TEMPLATE = """
 <!DOCTYPE html>
 <html>
