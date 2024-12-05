@@ -81,3 +81,4 @@ if __name__ == '__main__':
         print("Помилка: Неправильний токен. Перевірте файл token.txt")
     except Exception as e:
         print(f"Помилка: {e}")
+
