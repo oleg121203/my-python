@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template_string, redirect, url_for
+from flask import Flask, request, jsonify, render_template_string, redirect, url_for, render_template
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS  # Добавляем CORS
 from flask_wtf import FlaskForm
@@ -18,7 +18,7 @@ from config import (
     default_settings
 )
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 CORS(app, resources={r"/*": {"origins": "*"}})  # Разрешаем все источники
 app.config['SECRET_KEY'] = os.urandom(24)
 socketio = SocketIO(app, cors_allowed_origins="*")  # Разрешаем CORS для socketio
@@ -109,18 +109,26 @@ BASE_TEMPLATE = """
 
 @app.route('/')
 def home():
-    content = """
-    <h1>Discord Bot Dashboard</h1>
-    <div class="command-block">
-        <h2>О боте</h2>
-        <p>Этот бот поддерживает следующие функции:</p>
-        <div class="topic-list">
-            <a href="/commands" class="button">Сравнение моделей</a>
-            <a href="/commands" class="button">Работа с библиотеками</a>
-        </div>
-    </div>
-    """
-    return render_template_string(BASE_TEMPLATE, content=content)
+    return render_template('home.html', 
+                         title='Головна',
+                         bot_status='Активний',
+                         active_debates=len(debate_history))
+
+@app.route('/models')
+def models_page():
+    return render_template('models.html',
+                         title='Моделі',
+                         models=models,
+                         model_capabilities=answers)
+
+@app.route('/stats')
+def stats():
+    stats_data = {
+        'total_debates': len(debate_history),
+        'active_debates': len([d for d in debate_history.values() if d['status'] == 'active']),
+        'model_usage': {model: 0 for model in models}
+    }
+    return render_template('stats.html', title='Статистика', stats=stats_data)
 
 @app.route('/commands')
 def commands():

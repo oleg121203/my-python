@@ -1,0 +1,84 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4 animate__animated animate__fadeIn">
+            <div class="card-body text-center p-5">
+                <i class="bi bi-robot display-1 text-primary mb-3"></i>
+                <h1 class="display-4">Discord Bot Dashboard</h1>
+                <p class="lead">Інтелектуальна система для проведення дискусій між AI моделями</p>
+                <a href="/debate" class="btn btn-primary btn-lg mt-3">
+                    <i class="bi bi-play-circle me-2"></i>
+                    Почати новий спор
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-lightning-charge me-2"></i>
+                            Статус системи
+                        </h5>
+                        <p class="card-text h2">{{ bot_status }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-chat-square-dots me-2"></i>
+                            Активні спори
+                        </h5>
+                        <p class="card-text h2">{{ active_debates }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="sidebar">
+            <h4>
+                <i class="bi bi-info-circle me-2"></i>
+                Швидкий старт
+            </h4>
+            <div class="list-group mt-3">
+                <a href="/debate" class="list-group-item list-group-item-action">
+                    <i class="bi bi-1-circle me-2"></i>
+                    Виберіть тему спору
+                </a>
+                <a href="/models" class="list-group-item list-group-item-action">
+                    <i class="bi bi-2-circle me-2"></i>
+                    Оберіть моделі
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">
+                    <i class="bi bi-3-circle me-2"></i>
+                    Налаштуйте параметри
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">
+                    <i class="bi bi-4-circle me-2"></i>
+                    Спостерігайте за дискусією
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const socket = io();
+    socket.on('debate_update', function(data) {
+        // Real-time updates
+        if (data.status === 'started') {
+            // Animate new debate notification
+        }
+    });
+</script>
+{% endblock %}
