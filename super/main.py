@@ -1,7 +1,8 @@
 import os
 import discord
 from discord.ext import commands
-from spor import спор, answers, models, questions
+from spor import спор
+from config import models, answers, questions
 
 if __name__ == '__main__':
     PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -17,14 +18,18 @@ if __name__ == '__main__':
     intents = discord.Intents.default()
     intents.message_content = True
     intents.members = True
-    intents.typing = False
-    intents.presences = False
+    intents.typing = True  # Changed to True
+    intents.presences = True  # Changed to True
+    intents.guilds = True  # Added
+    intents.messages = True  # Added
 
     class Bot(commands.Bot):
         def __init__(self):
             super().__init__(command_prefix='/', intents=intents)
+            self.tree = discord.app_commands.CommandTree(self)  # Added
 
         async def setup_hook(self):
+            await self.tree.sync()  # Added
             await self.add_cog(Model1(self))
 
         async def on_ready(self):
@@ -65,6 +70,6 @@ if __name__ == '__main__':
     try:
         bot.run(token)
     except discord.errors.LoginFailure:
-        print("Помилка: Неправильний токен. Пер��вірте файл token.txt")
+        print("Помилка: Неправильний токен. Перевірте файл token.txt")
     except Exception as e:
         print(f"Помилка: {e}")
