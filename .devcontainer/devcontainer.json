@@ -65,10 +65,9 @@
         "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
     ],
     "postCreateCommand": [
-        "sudo chown -R vscode:vscode /usr/local/lib/python3.11",
-        "sudo python3 -m pip install --upgrade pip",
-        "sudo pip install -r requirements.txt",
-        "sudo pip install -r src/requirements.txt",
+        "/usr/local/bin/python3 -m pip install --user --upgrade pip",
+        "/usr/local/bin/python3 -m pip install --user -r requirements.txt",
+        "/usr/local/bin/python3 -m pip install --user -r src/requirements.txt",
         "chmod 600 ~/.ssh/id_rsa",
         "chmod 644 ~/.ssh/id_rsa.pub",
         "eval \"$(ssh-agent -s)\"",
