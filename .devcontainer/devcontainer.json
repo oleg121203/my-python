@@ -51,7 +51,6 @@
                 "GitHub.copilot",
                 "ms-python.black-formatter",
                 "ms-python.isort",
-                "sourcery.sourcery",
                 "eamodio.gitlens"
             ]
         }
