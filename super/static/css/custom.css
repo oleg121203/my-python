@@ -62,3 +62,18 @@
     from { transform: translateX(100%); }
     to { transform: translateX(0); }
 }
+
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+    display: inline-block;
+    margin-right: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.status-indicator.active {
+    background: #4CAF50;
+    box-shadow: 0 0 10px #4CAF50;
+}

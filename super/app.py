@@ -23,18 +23,13 @@ app.config.from_object(Config)
 
 # Configure CORS
 CORS(app, 
-    resources={r"/*": {
-        "origins": "*",
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
-    }},
+    resources={r"/*": {"origins": "*"}},
     supports_credentials=True
 )
 
 # Update SocketIO configuration
 socketio = SocketIO(
     app,
-    cors_allowed_origins="*",
     async_mode='eventlet',
     logger=True,
     engineio_logger=True,
@@ -625,6 +620,15 @@ async def run_debate(debate_id):
             socketio.emit('debate_message', {'message': message})
     except Exception as e:
         socketio.emit('debate_message', {'message': f'Помилка: {str(e)}'})
+
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+    socketio.emit('status', {'status': 'connected'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

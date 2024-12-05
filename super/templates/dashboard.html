@@ -94,23 +94,22 @@ const socket = io({
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
-    autoConnect: true,
-    withCredentials: true,
-    extraHeaders: {
-        "Access-Control-Allow-Origin": "*"
-    }
-});
-
-socket.on('connect_error', (error) => {
-    console.error('Socket connection error:', error);
-    if (socket.io.engine.transport.name === 'websocket') {
-        socket.io.engine.transport.name = 'polling';
-        socket.disconnect().connect();
-    }
+    autoConnect: true
 });
 
 socket.on('connect', () => {
-    console.log('Socket connected successfully');
+    console.log('Connected to server');
+    document.querySelector('.status-indicator').classList.add('active');
+});
+
+socket.on('disconnect', () => {
+    console.log('Disconnected from server');
+    document.querySelector('.status-indicator').classList.remove('active');
+});
+
+socket.on('error', (error) => {
+    console.error('Socket error:', error);
+    showNotification('Connection error', 'error');
 });
 
 let activeDebates = new Map();
