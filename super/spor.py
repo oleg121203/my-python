@@ -25,65 +25,29 @@ async def process_model_response(ctx, topic: str, model: str, model_answers: dic
         print(f"Error in process_model_response: {e}")
         return model_answers
 
-async def спор(ctx, promt: str, settings: dict = None):
-    """Main спор function implementation"""
+async def спор(ctx, prompt):
     try:
-        if settings is None:
-            settings = {
-                'speed': 'medium',
-                'permissions': []
-            }
-        
-        models_list = None
-        if ':' in promt:
-            topic, models_list = promt.split(':', 1)
-        else:
-            topic = promt
-
-        topic = topic.strip()
-        if topic not in answers:
+        if ':' not in prompt:
             available_topics = ", ".join(answers.keys())
-            await ctx.send(f"❌ Тема не знайдена. Доступні теми: {available_topics}")
+            await ctx.send(f"Використання: /спор <тема>:<модель1>,<модель2>\nДоступні теми: {available_topics}")
             return
 
-        # Process debate settings
-        delay = {
-            'slow': 2.0,
-            'medium': 1.0,
-            'fast': 0.5
-        }.get(settings.get('speed', 'medium'), 1.0)
+        topic, models_str = prompt.split(':', 1)
+        selected_models = [m.strip() for m in models_str.split(',')]
 
-        if settings.get('permissions'):
-            if 'model_discussion' in settings['permissions']:
-                await ctx.send("🤝 Моделі можуть обговорювати між собою")
-            if 'question_clarification' in settings['permissions']:
-                await ctx.send("❓ Моделі можуть уточнювати питанн��")
-
-        # Process models
-        current_models = [m.strip() for m in models_list.split(',')] if models_list else models
-        if not all(model in models for model in current_models):
-            available_models = ", ".join(models)
-            await ctx.send(f"❌ Вказана неправильна модель. Доступні моделі: {available_models}")
+        if topic not in answers:
+            await ctx.send(f"Тема '{topic}' не знайдена")
             return
 
-        # Get model responses
-        model_answers = {}
-        for model in current_models:
-            await asyncio.sleep(delay)
-            model_answers = await process_model_response(ctx, topic, model, model_answers)
+        for model in selected_models:
+            if model not in models:
+                await ctx.send(f"Модель '{model}' не знайдена")
+                return
 
-        # Check for agreement
-        for model1, answer1 in model_answers.items():
-            for model2, answer2 in model_answers.items():
-                if model1 != model2 and answer1.lower() == answer2.lower():
-                    await ctx.send(f"Суперечка була зупинена! Моделі {model1} та {model2} дійшли згоди.")
-                    return
-
-        if model_answers:
-            await ctx.send("Суперечка триває...")
-        else:
-            await ctx.send("Не знайдено відповідей для вказаних моделей.")
+        # Send responses from each model
+        for model in selected_models:
+            answer = answers[topic][model]["answer"]
+            await ctx.send(f"**{model}**: {answer}")
 
     except Exception as e:
-        await ctx.send(f"❌ Помилка: {str(e)}")
-        await ctx.send("Використання: /спор <тема> або /спор <тема>:<модель1>,<модель2>")
+        await ctx.send(f"Помилка: {str(e)}")

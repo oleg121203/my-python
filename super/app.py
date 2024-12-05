@@ -86,7 +86,7 @@ intents.presences = True
 intents.guilds = True
 intents.messages = True
 
-# Базовый HTML ш��блон
+# Базовый HTML шаблон
 BASE_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -241,7 +241,7 @@ def commands():
             <strong>Доступные темы:</strong><br>
             """ + " ".join([f'<a href="#" class="button">{topic}</a>' for topic in answers.keys()]) + """
         </div>
-        <p><strong>И��пользование:</strong> /спор &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
+        <p><strong>Использование:</strong> /спор &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
     </div>
     
     <div class="command-block">
@@ -506,7 +506,7 @@ def start_new_debate():
         if len(selected_models) < 2:
             return jsonify({
                 'success': False,
-                'error': 'Потрібн�� вибрати мінімум 2 моделі'
+                'error': 'Потрібно вибрати мінімум 2 моделі'
             })
 
         debate_id = len(debate_history) + 1
@@ -615,7 +615,7 @@ if __name__ == '__main__':
 
 @socketio.on('start_debate')
 def handle_debate_start(settings):
-    # Обработк�� начала спора через WebSocket
+    # Обработка начала спора через WebSocket
     debate_id = len(debate_history) + 1
     debate_history[debate_id] = {
         'settings': settings,
@@ -790,3 +790,20 @@ def create_admin():
         admin.set_password('oleg')
         db.session.add(admin)
         db.session.commit()
+
+
+from app import create_app, db
+from app.models import User
+
+app = create_app()
+
+# Создаем базу данных и админа при первом запуске
+with app.app_context():
+    if not User.query.filter_by(username='admin').first():
+        admin = User(username='admin', is_admin=True)
+        admin.set_password('admin')
+        db.session.add(admin)
+        db.session.commit()
+
+if __name__ == '__main__':
+    app.run(debug=True)

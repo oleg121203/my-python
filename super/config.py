@@ -1,36 +1,24 @@
 import os
 
-
 class Config:
+    # Get absolute path to the instance folder
+    INSTANCE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'instance')
+    # Ensure instance folder exists
+    os.makedirs(INSTANCE_PATH, exist_ok=True)
+    
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-123'
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL') or 'sqlite:///app.db'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        f'sqlite:///{os.path.join(INSTANCE_PATH, "app.db")}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-
-class DevelopmentConfig(Config):
-    DEBUG = True
-
-class ProductionConfig(Config):
-    DEBUG = False
-
-class TestingConfig(Config):
-    TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
-
-
+# AI Models configuration
 models = ['Mixtral 8x7B', 'Qwen2.5', 'Coder 1.5B']
 
 answers = {
     "AI Libraries": {
-        "Mixtral 8x7B": {"answer": "Для створення програми слід використовувати бібліотеку «Mixtral», оскільки вона має дуже швидку роботу та ефективне використання ресурсів."},
-        "Qwen2.5": {"answer": "Для створення програми слід використовувати бібліотеку «Qwen», оскільки вона має дуже добре спроєктовану архітектуру та високий рівень безпеки."},
-        "Coder 1.5B": {"answer": "Для створення програми слід використовувати бібліотеку «Coder», оскільки вона має дуже добре підтримку багатьох мов програмування."}
-    },
-    "Telethon": {
-        "Mixtral 8x7B": {"answer": "Telethon превосходит другие библиотеки благодаря асинхро��ности, полной поддержке MTProto и высокой производительности."},
-        "Qwen2.5": {"answer": "Python-telegram-bot предпочтительнее Telethon из-за более простого API и лучшей документации."},
-        "Coder 1.5B": {"answer": "Telethon - лучший выбор благодаря его гибкости и поддержке всех функций Telegram, включая пользовательские аккаунты."}
+        "Mixtral 8x7B": {"answer": "Для створення програми слід використовувати бібліотеку «Mixtral��..."},
+        "Qwen2.5": {"answer": "Для створення програми слід використовувати бібліотеку «Qwen»..."},
+        "Coder 1.5B": {"answer": "Для створення програми слід використовувати бібліотеку «Coder»..."}
     }
 }
 
@@ -44,27 +32,16 @@ questions = {
 
 debate_settings = {
     "speeds": {
-        "slow": {"name": "Повільний", "delay": 2.0, "description": "Детальне обговорення кожного аргументу"},
-        "medium": {"name": "Середній", "delay": 1.0, "description": "Збалансований темп дискусії"},
-        "fast": {"name": "Швидкий", "delay": 0.5, "description": "Швидкий о��мін аргументами"}
+        "slow": {"name": "Повільний", "delay": 2.0, "description": "Детальне обговорення"},
+        "medium": {"name": "Середній", "delay": 1.0, "description": "Збалансований темп"},
+        "fast": {"name": "Швидкий", "delay": 0.5, "description": "Швидкий обмін"}
     },
     "response_types": {
-        "short": {"name": "Короткі", "description": "Лаконічні відповіді по суті"},
-        "detailed": {"name": "Детальні", "description": "Розгорнуті відповіді з аргументацією"},
-        "mixed": {"name": "Змішані", "description": "Комбінація коротких та детальних відповідей"}
-    },
-    "interaction_modes": {
-        "sequential": {"name": "Послідовний", "description": "Моделі відповідають по черзі"},
-        "interactive": {"name": "Інтерактивний", "description": "Моделі можуть взаємодіяти між собою"}
-    },
-    "permissions": {
-        "model_discussion": "Дозвіл моделям обговорювати між собою",
-        "question_clarification": "Дозвіл уточнювати питання",
-        "user_clarification": "Дозвіл запитувати уточнення у користувача"
+        "short": {"name": "Короткі", "description": "Лаконічні відповіді"},
+        "detailed": {"name": "Детальні", "description": "Розгорнуті відповіді"}
     }
 }
 
-# Добавляем настройки по умолчанию
 default_settings = {
     "speed": "medium",
     "response_type": "detailed",
@@ -72,26 +49,5 @@ default_settings = {
     "permissions": ["model_discussion", "question_clarification"]
 }
 
-# История дебатов с расширенной структурой
+# Initialize empty debate history
 debate_history = {}
-
-# Добавляем обработку ошибок при инициализации
-try:
-    debate_settings = debate_settings
-except NameError:
-    debate_settings = {
-        "speeds": {
-            "medium": {"name": "Середній", "delay": 1.0, "description": "Збалансований темп дискусії"}
-        },
-        "permissions": {}
-    }
-
-try:
-    default_settings
-except NameError:
-    default_settings = {
-        "speed": "medium",
-        "response_type": "detailed",
-        "interaction_mode": "interactive",
-        "permissions": []
-    }
