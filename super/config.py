@@ -1,12 +1,17 @@
 import os
 
+
 class Config:
     DEBUG = True
-    SECRET_KEY = os.urandom(24)
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-here'
     SESSION_COOKIE_SECURE = False
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = None
     WTF_CSRF_ENABLED = False
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'DATABASE_URL') or 'sqlite:///app.db'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
 
 models = ['Mixtral 8x7B', 'Qwen2.5', 'Coder 1.5B']
 

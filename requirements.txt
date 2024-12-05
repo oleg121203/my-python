@@ -84,11 +84,12 @@ urllib3==2.2.3
 XlsxWriter==3.2.0
 
 # Flask and extensions
-flask==3.0.2
-Flask-SQLAlchemy==3.1.1
+flask>=2.0.0
+Flask-SQLAlchemy>=3.0.0
 Flask-Login==0.6.3
 Flask-WTF==1.2.1
 Flask-Migrate==4.0.5
+SQLAlchemy>=1.4.0
 
 # System dependencies
 # Please install the following package using your system's package manager:

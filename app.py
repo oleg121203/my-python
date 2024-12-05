@@ -4,8 +4,24 @@
 #-----------------------------------------------------------------------------------------
 
 from flask import Flask
-app = Flask(__name__)
+from flask_sqlalchemy import SQLAlchemy
+from config import Config
 
-@app.route("/")
-def hello():
-    return app.send_static_file("index.html")
+db = SQLAlchemy()
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+    
+    db.init_app(app)
+    
+    with app.app_context():
+        from models import User  # Import models after db initialization
+        db.create_all()
+    
+    return app
+
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(debug=True)

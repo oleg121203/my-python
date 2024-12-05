@@ -127,8 +127,47 @@ BASE_TEMPLATE = """
 </html>
 """
 
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+
+        if user and user.check_password(password):
+            login_user(user)
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('home'))
+
+        flash('Invalid username or password')
+    return render_template('login.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
+# Update existing route decorators to require login
+
 
 @app.route('/')
+@login_required
 def home():
     return render_template('home.html',
                            title='Головна',
@@ -137,6 +176,7 @@ def home():
 
 
 @app.route('/models')
+@login_required
 def models_page():
     # Загружаем конфигурацию моделей из файла Continue
     continue_config_path = os.path.expanduser('~/.continue/config.json')
@@ -154,6 +194,7 @@ def models_page():
 
 
 @app.route('/stats')
+@login_required
 def stats():
     stats_data = {
         'total_debates': len(debate_history),
@@ -164,6 +205,7 @@ def stats():
 
 
 @app.route('/commands')
+@login_required
 def commands():
     content = """
     <h1>Доступные команды</h1>
@@ -203,6 +245,7 @@ def status():
 
 
 @app.route('/debate')
+@login_required
 def debate():
     content = """
     <div class="row">
@@ -582,6 +625,7 @@ def handle_model_selection(data):
 
 
 @app.route('/history')
+@login_required
 def debate_history_page():
     # Сортируем дебаты по дате создания
     sorted_debates = sorted(
@@ -597,6 +641,7 @@ def debate_history_page():
 
 
 @app.route('/api/debates/active')
+@login_required
 def get_active_debates():
     active_debates = [
         {'id': k, **v}
@@ -607,6 +652,7 @@ def get_active_debates():
 
 
 @app.route('/api/debates/<int:debate_id>/stop', methods=['POST'])
+@login_required
 def stop_debate(debate_id):
     if debate_id in debate_history:
         debate_history[debate_id]['status'] = 'completed'
