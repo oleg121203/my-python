@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify, render_template_string, redirect, url_for
 from flask_socketio import SocketIO, emit
+from flask_cors import CORS  # Добавляем CORS
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SelectMultipleField
 import os
+import json
+from datetime import datetime
 import discord
-from discord import app_commands
 from discord.ext.commands import Bot, Cog, command
 from spor import спор
 from config import (
@@ -17,8 +19,9 @@ from config import (
 )
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})  # Разрешаем все источники
 app.config['SECRET_KEY'] = os.urandom(24)
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")  # Разрешаем CORS для socketio
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(PROJECT_DIR, 'token.txt')
@@ -65,7 +68,7 @@ BASE_TEMPLATE = """
         <div class="container">
             <a class="navbar-brand" href="/">Discord Bot</a>
             <div class="navbar-nav">
-                <a class="nav-link" href="/debate">Новий спор</a>
+                <a class="nav-link" href="/debate">Новий сп��р</a>
                 <a class="nav-link" href="/history">Історія</a>
                 <a class="nav-link" href="/stats">Статистика</a>
             </div>
@@ -137,7 +140,7 @@ def commands():
         <h3>Работа с библиотеками</h3>
         <p>Получает информацию о программных библиотеках</p>
         <div class="topic-list">
-            <strong>Доступные м��дели:</strong><br>
+            <strong>Доступные модели:</strong><br>
             """ + " ".join([f'<a href="#" class="button">{model}</a>' for model in models]) + """
         </div>
         <p><strong>Использование:</strong> /програма &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
@@ -231,11 +234,137 @@ def debate():
             </div>
         </div>
         
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h4>Створення нової теми</h4>
+                    <form id="custom-topic-form">
+                        <div class="mb-3">
+                            <label class="form-label">Назва теми</label>
+                            <input type="text" class="form-control" name="topic_name" placeholder="Введіть назву теми">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Промпт для моделей</label>
+                            <textarea class="form-control" name="prompt" rows="4" 
+                                    placeholder="Опишіть контекст та деталі спору..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Ключові аспекти</label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" placeholder="Додайте ключовий аспект">
+                                <button class="btn btn-outline-secondary" type="button" onclick="addAspect()">+</button>
+                            </div>
+                            <div id="aspects-list" class="d-flex flex-wrap gap-2">
+                                <!-- Аспекты будут добавляться сюда -->
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Обмеження спору</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="constraints[]" value="fact_based">
+                                <label class="form-check-label">Тільки факти</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="constraints[]" value="time_limit">
+                                <label class="form-check-label">Обмеження часу</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="constraints[]" value="sources_required">
+                                <label class="form-check-label">Потрібні джерела</label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">Створити тему</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4>Поточні спори</h4>
+                    <div id="active-debates" class="list-group">
+                        <!-- Активные споры будут добавляться сюда -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div id="debate-chat" class="mt-4">
         </div>
     </div>
+
+    <script>
+        let aspects = [];
+        
+        function addAspect() {
+            const input = document.querySelector('.input-group input');
+            const aspect = input.value.trim();
+            if (aspect) {
+                aspects.push(aspect);
+                updateAspectsList();
+                input.value = '';
+            }
+        }
+        
+        function removeAspect(index) {
+            aspects.splice(index, 1);
+            updateAspectsList();
+        }
+        
+        function updateAspectsList() {
+            const list = document.getElementById('aspects-list');
+            list.innerHTML = aspects.map((aspect, index) => `
+                <span class="badge bg-secondary">
+                    ${aspect}
+                    <button type="button" class="btn-close btn-close-white" 
+                            onclick="removeAspect(${index})"></button>
+                </span>
+            `).join('');
+        }
+        
+        document.getElementById('custom-topic-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('aspects', JSON.stringify(aspects));
+            
+            fetch('/create_topic', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Обновляем список тем
+                    socket.emit('update_topics');
+                }
+            });
+        });
+    </script>
     """
     return render_template_string(BASE_TEMPLATE, content=content)
+
+@app.route('/create_topic', methods=['POST'])
+def create_topic():
+    topic_name = request.form.get('topic_name')
+    prompt = request.form.get('prompt')
+    aspects = json.loads(request.form.get('aspects', '[]'))
+    constraints = request.form.getlist('constraints[]')
+    
+    # Добавляем новую тему в конфиг
+    new_topic = {
+        'prompt': prompt,
+        'aspects': aspects,
+        'constraints': constraints,
+        'created_at': datetime.now().isoformat()
+    }
+    
+    debate_settings['custom_topics'] = debate_settings.get('custom_topics', {})
+    debate_settings['custom_topics'][topic_name] = new_topic
+    
+    return jsonify({'success': True, 'topic': topic_name})
 
 @app.route('/start_debate', methods=['POST'])
 def start_debate():
@@ -284,32 +413,51 @@ class Model1(Cog):
             return []
 
     @command(name='програма')
-    async def програма(self, ctx, *, аргументи: str):
+    async def programa(self, ctx, *, arguments: str):
         try:
-            if ':' not in аргументи:
+            if ':' not in arguments:
                 await ctx.send("Використання: /програма <тема>:<модель1>,<модель2>")
                 return
 
-            тема, моделі = аргументи.split(':', 1)
+            topic, models_list = arguments.split(':', 1)
             questions_file = os.path.join(
                 PROJECT_DIR, 'src', 'questions.txt')
             questions = self.read_questions(questions_file)
 
         except ValueError:
-            await ctx.send("Використання: /програма <т��ма>:<модель1>,<модель2>")
+            await ctx.send("Використання: /програма <тема>:<модель1>,<модель2>")
 
     @command(name='спор')
-    async def спор_command(self, ctx, *, промт: str = None):
+    async def spor_command(self, ctx, *, promt: str = None):
         try:
-            if not промт:
+            if not promt:
                 available_topics = ", ".join(answers.keys())
                 await ctx.send(f"Укажите тему. Доступные темы: {available_topics}")
                 return
-            await спор(ctx, промт)
+            await спор(ctx, promt)
         except Exception as e:
             print(f"Error: {e}")
 
 bot = DiscordBot()
+
+def run_bot():
+    bot.run(token)
+
+if __name__ == '__main__':
+    from threading import Thread
+    bot_thread = Thread(target=run_bot)
+    bot_thread.daemon = True  # Делаем поток демоном
+    bot_thread.start()
+    
+    # Run Flask app with updated settings
+    socketio.run(
+        app,
+        host='0.0.0.0',
+        port=5000,
+        debug=True,
+        use_reloader=False,
+        allow_unsafe_werkzeug=True  # Разрешаем небезопасный доступ для разработки
+    )
 
 @socketio.on('start_debate')
 def handle_debate_start(settings):
@@ -321,8 +469,3 @@ def handle_debate_start(settings):
         'status': 'active'
     }
     emit('debate_update', {'debate_id': debate_id, 'status': 'started'})
-
-if __name__ == '__main__':
-    from threading import Thread
-    Thread(target=bot.run, args=(token,)).start()
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)

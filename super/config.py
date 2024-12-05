@@ -53,3 +53,24 @@ default_settings = {
 
 # История дебатов с расширенной структурой
 debate_history = {}
+
+# Добавляем обработку ошибок при инициализации
+try:
+    debate_settings = debate_settings
+except NameError:
+    debate_settings = {
+        "speeds": {
+            "medium": {"name": "Середній", "delay": 1.0, "description": "Збалансований темп дискусії"}
+        },
+        "permissions": {}
+    }
+
+try:
+    default_settings
+except NameError:
+    default_settings = {
+        "speed": "medium",
+        "response_type": "detailed",
+        "interaction_mode": "interactive",
+        "permissions": []
+    }

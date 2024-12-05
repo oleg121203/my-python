@@ -5,22 +5,25 @@ import asyncio
 from config import models, answers, questions, debate_settings, debate_history
 
 async def process_model_response(ctx, topic: str, model: str, model_answers: dict, question: str = None) -> dict:
-    """Asynchronous processing of a single model's response"""
-    model = model.strip()
-    answer_data = answers.get(topic, {}).get(model, {})
-    
-    if answer_data:
-        answer = answer_data.get("answer")
-        if question:
-            model_answers[model] = {"question": question, "answer": answer}
-            await ctx.send(f"Модель {model} на питання '{question}': {answer}")
+    try:
+        model = model.strip()
+        answer_data = answers.get(topic, {}).get(model, {})
+        
+        if answer_data:
+            answer = answer_data.get("answer")
+            if question:
+                model_answers[model] = {"question": question, "answer": answer}
+                await ctx.send(f"Модель {model} на питання '{question}': {answer}")
+            else:
+                model_answers[model] = answer
+                await ctx.send(f"Модель {model}: {answer}")
         else:
-            model_answers[model] = answer
-            await ctx.send(f"Модель {model}: {answer}")
-    else:
-        await ctx.send(f"Модель {model} не може відповісти на питання з теми '{topic}'.")
-    
-    return model_answers
+            await ctx.send(f"Модель {model} не може відповісти на питання з теми '{topic}'.")
+        
+        return model_answers
+    except Exception as e:
+        print(f"Error in process_model_response: {e}")
+        return model_answers
 
 async def спор(ctx, promt: str, settings: dict = None):
     """Main спор function implementation"""
@@ -54,7 +57,7 @@ async def спор(ctx, promt: str, settings: dict = None):
             if 'model_discussion' in settings['permissions']:
                 await ctx.send("🤝 Моделі можуть обговорювати між собою")
             if 'question_clarification' in settings['permissions']:
-                await ctx.send("❓ Моделі можуть уточнювати питання")
+                await ctx.send("❓ Моделі можуть уточнювати питанн��")
 
         # Process models
         current_models = [m.strip() for m in models_list.split(',')] if models_list else models
