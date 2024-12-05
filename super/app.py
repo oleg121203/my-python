@@ -68,7 +68,7 @@ BASE_TEMPLATE = """
         <div class="container">
             <a class="navbar-brand" href="/">Discord Bot</a>
             <div class="navbar-nav">
-                <a class="nav-link" href="/debate">Новий сп��р</a>
+                <a class="nav-link" href="/debate">Новий спір</a>
                 <a class="nav-link" href="/history">Історія</a>
                 <a class="nav-link" href="/stats">Статистика</a>
             </div>
@@ -157,7 +157,7 @@ def commands():
         <h3>Работа с библиотеками</h3>
         <p>Получает информацию о программных библиотеках</p>
         <div class="topic-list">
-            <strong>Доступные модели:</strong><br>
+            <strong>Д��ступные модели:</strong><br>
             """ + " ".join([f'<a href="#" class="button">{model}</a>' for model in models]) + """
         </div>
         <p><strong>Использование:</strong> /програма &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
@@ -370,7 +370,7 @@ def create_topic():
     aspects = json.loads(request.form.get('aspects', '[]'))
     constraints = request.form.getlist('constraints[]')
     
-    # Добавляем но��ую тему в конфиг
+    # Добавляем новую тему в конфиг
     new_topic = {
         'prompt': prompt,
         'aspects': aspects,
@@ -402,24 +402,32 @@ def start_debate():
 
 @app.route('/debate/start', methods=['POST'])
 def start_new_debate():
-    if 'current_debate' not in debate_history or not debate_history['current_debate']['models']:
+    data = request.json
+    selected_models = data.get('models', [])
+    
+    if len(selected_models) < 2:
         return jsonify({
             'success': False,
-            'error': 'Спочатку виберіть хоча б одну модель',
-            'redirect': '/models'
+            'error': 'Потрібно вибрати мінімум 2 моделі'
         })
     
-    settings = request.json
     debate_id = len(debate_history) + 1
     debate_history[debate_id] = {
-        **debate_history['current_debate'],
-        'settings': settings,
+        'models': selected_models,
         'status': 'active',
-        'created_at': datetime.now().isoformat()
+        'created_at': datetime.now().isoformat(),
+        'messages': []
     }
     
-    del debate_history['current_debate']
-    return jsonify({'success': True, 'debate_id': debate_id})
+    socketio.emit('debate_started', {
+        'debate_id': debate_id,
+        'models': selected_models
+    })
+    
+    return jsonify({
+        'success': True,
+        'debate_id': debate_id
+    })
 
 @app.errorhandler(404)
 def not_found(error):
@@ -435,7 +443,7 @@ class DiscordBot(Bot):
         await self.add_cog(Model1(self))
 
     async def on_ready(self):
-        print(f"Бот з��пущено! Ім'я користувача: {self.user.name}")
+        print(f"Бот запущено! Ім'я користувача: {self.user.name}")
 
 
 class Model1(Cog):
@@ -470,7 +478,7 @@ class Model1(Cog):
         try:
             if not promt:
                 available_topics = ", ".join(answers.keys())
-                await ctx.send(f"Ука��ите тему. Доступные темы: {available_topics}")
+                await ctx.send(f"Укажите тему. Доступные темы: {available_topics}")
                 return
             await спор(ctx, promt)
         except Exception as e:
@@ -511,21 +519,37 @@ def handle_debate_start(settings):
 @socketio.on('select_model')
 def handle_model_selection(data):
     model = data.get('model')
-    debate_id = data.get('debate_id', 'current')  # Используем 'current' для активного спора
+    debate_id = data.get('debate_id', 'current')
     
     if 'current_debate' not in debate_history:
         debate_history['current_debate'] = {
             'models': [],
             'status': 'preparing',
-            'settings': {}
+            'settings': {},
+            'created_at': datetime.now().isoformat()
         }
     
-    if model not in debate_history['current_debate']['models']:
-        debate_history['current_debate']['models'].append(model)
+    current_debate = debate_history['current_debate']
+    
+    if model not in current_debate['models']:
+        current_debate['models'].append(model)
         emit('model_selected', {
-            'success': True, 
+            'success': True,
             'model': model,
-            'models': debate_history['current_debate']['models']
+            'models': current_debate['models']
         }, broadcast=True)
-    else:
-        emit('model_selected', {'success': False, 'error': 'Debate not found'})
+
+@app.route('/history')
+def debate_history_page():
+    # Сортируем дебаты по дате создания
+    sorted_debates = sorted(
+        [{'id': k, **v} for k, v in debate_history.items() if k != 'current_debate'],
+        key=lambda x: x.get('created_at', ''),
+        reverse=True
+    )
+    
+    return render_template('history.html', 
+                         title='Історія спорів',
+                         debates=sorted_debates)
+
+# ...rest of existing code...

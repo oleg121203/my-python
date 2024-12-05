@@ -16,7 +16,7 @@
     
     {% for model in model_info %}
     <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 debate-card">
+        <div class="card h-100 debate-card" id="model-card-{{loop.index}}">
             <div class="card-body">
                 <h5 class="card-title d-flex align-items-center">
                     <span class="badge model-badge me-2">{{ model.provider }}</span>
@@ -47,10 +47,11 @@
             </div>
             
             <div class="card-footer bg-transparent">
-                <button class="btn btn-sm btn-outline-primary w-100" 
-                        onclick="selectModel('{{ model.title }}')">
+                <button class="btn btn-sm btn-outline-primary w-100 model-select-btn" 
+                        data-model="{{ model.title }}"
+                        onclick="selectModel(this, '{{ model.title }}')">
                     <i class="bi bi-plus-circle me-1"></i>
-                    Вибрати для спору
+                    <span class="button-text">Вибрати для спору</span>
                 </button>
             </div>
         </div>
@@ -58,57 +59,74 @@
     {% endfor %}
 </div>
 
+<div class="fixed-bottom p-3 bg-white border-top shadow" id="model-selection-bar" style="display: none;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong>Вибрані моделі: </strong>
+                <div id="selected-models" class="d-inline-block"></div>
+            </div>
+            <button id="start-debate-btn" 
+                    class="btn btn-gradient" 
+                    onclick="startDebate()" 
+                    disabled>
+                <i class="bi bi-play-circle-fill me-2"></i>
+                Почати спор
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
 <script>
 let selectedModels = new Set();
 
-function selectModel(modelTitle) {
-    const btn = document.querySelector(`[data-model="${modelTitle}"]`);
+function selectModel(btn, modelTitle) {
+    const card = btn.closest('.debate-card');
+    
     if (selectedModels.has(modelTitle)) {
         selectedModels.delete(modelTitle);
-        btn.classList.remove('selected');
+        card.classList.remove('selected');
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline-primary');
+        btn.querySelector('.button-text').textContent = 'Вибрати для спору';
     } else {
         selectedModels.add(modelTitle);
-        btn.classList.add('selected');
+        card.classList.add('selected');
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-primary');
+        btn.querySelector('.button-text').textContent = 'Вибрано';
         
         socket.emit('select_model', {
             model: modelTitle
         });
     }
     
-    updateStartDebateButton();
+    updateSelectionBar();
 }
 
-function updateStartDebateButton() {
+function updateSelectionBar() {
+    const bar = document.getElementById('model-selection-bar');
     const startBtn = document.getElementById('start-debate-btn');
-    if (selectedModels.size >= 2) {
-        startBtn.removeAttribute('disabled');
+    const selectedModelsDiv = document.getElementById('selected-models');
+    
+    if (selectedModels.size > 0) {
+        bar.style.display = 'block';
+        selectedModelsDiv.innerHTML = Array.from(selectedModels).map(model => 
+            `<span class="badge bg-primary me-1">${model}</span>`
+        ).join('');
+        
+        startBtn.disabled = selectedModels.size < 2;
     } else {
-        startBtn.setAttribute('disabled', 'disabled');
+        bar.style.display = 'none';
     }
 }
-
-socket.on('model_selected', function(data) {
-    if (data.success) {
-        const notification = document.createElement('div');
-        notification.className = 'alert alert-success animate__animated animate__fadeIn';
-        notification.innerHTML = `
-            <div class="d-flex align-items-center">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                <div>
-                    <strong>Модель ${data.model} додана</strong><br>
-                    <small>Вибрано моделей: ${data.models.length}</small>
-                </div>
-            </div>
-        `;
-        
-        document.querySelector('.container').prepend(notification);
-        setTimeout(() => notification.remove(), 3000);
-    }
-});
 
 function startDebate() {
     if (selectedModels.size < 2) {
-        window.location.href = '/models';
+        showAlert('Виберіть хоча б 2 моделі для спору', 'warning');
         return;
     }
     
@@ -125,27 +143,45 @@ function startDebate() {
     .then(data => {
         if (data.success) {
             window.location.href = `/debate/${data.debate_id}`;
-        } else if (data.redirect) {
-            window.location.href = data.redirect;
+        } else {
+            showAlert(data.error || 'Помилка при створенні спору', 'danger');
         }
     });
 }
+
+function showAlert(message, type = 'info') {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} animate__animated animate__fadeIn`;
+    alert.innerHTML = message;
+    document.querySelector('.container').prepend(alert);
+    setTimeout(() => alert.remove(), 3000);
+}
+
+socket.on('model_selected', function(data) {
+    if (data.success) {
+        showAlert(`Модель ${data.model} додана до спору`, 'success');
+    }
+});
 </script>
 
-<div class="fixed-bottom p-3 bg-white border-top" id="model-selection-bar" style="display: none;">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <strong>Вибрані моделі: <span id="selected-count">0</span></strong>
-            </div>
-            <button id="start-debate-btn" 
-                    class="btn btn-gradient" 
-                    onclick="startDebate()" 
-                    disabled>
-                <i class="bi bi-play-circle-fill me-2"></i>
-                Почати спор
-            </button>
-        </div>
-    </div>
-</div>
+<style>
+.debate-card.selected {
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 0 15px rgba(114,137,218,0.2);
+}
+
+.model-select-btn.selected {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+#model-selection-bar {
+    transition: all 0.3s ease;
+    transform: translateY(100%);
+}
+
+#model-selection-bar.show {
+    transform: translateY(0);
+}
+</style>
 {% endblock %}
