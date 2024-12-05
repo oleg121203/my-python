@@ -21,7 +21,12 @@
                 ],
                 "git.user.name": "Oleg Kizyma",
                 "git.user.email": "oleg1203@gmail.com",
-                "continue.previewMode": true
+                "continue.previewMode": true,
+                "python.analysis.languageServerMode": "default",
+                "python.analysis.indexing": true,
+                "python.analysis.autoImportCompletions": true,
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": false
             },
             "extensions": [
                 "streetsidesoftware.code-spell-checker",
