@@ -1,5 +1,6 @@
-
 discord.py>=2.3.2
 flask>=3.0.0
 python-dotenv>=1.0.0
 aiohttp>=3.9.1
+flask-socketio>=5.3.6
+flask-wtf>=1.2.1

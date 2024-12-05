@@ -1,12 +1,24 @@
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string, redirect, url_for
+from flask_socketio import SocketIO, emit
+from flask_wtf import FlaskForm
+from wtforms import StringField, SelectField, SelectMultipleField
 import os
 import discord
 from discord import app_commands
 from discord.ext.commands import Bot, Cog, command
 from spor import спор
-from config import models, answers, questions
+from config import (
+    models, 
+    answers, 
+    questions, 
+    debate_settings, 
+    debate_history, 
+    default_settings
+)
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.urandom(24)
+socketio = SocketIO(app)
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(PROJECT_DIR, 'token.txt')
@@ -32,94 +44,62 @@ BASE_TEMPLATE = """
 <html>
 <head>
     <title>Discord Bot Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
     <style>
-        /* Modern CSS Reset */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            line-height: 1.6;
-            background: #f0f2f5;
-            color: #1a1a1a;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .nav {
-            background: linear-gradient(135deg, #7289da, #5b6eae);
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .button {
-            background: #7289da;
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
+        .debate-card {
             transition: all 0.3s ease;
-            font-weight: 500;
-            text-decoration: none;
-            display: inline-block;
+            cursor: pointer;
         }
-        
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(114,137,218,0.3);
+        .debate-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .topic-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        
-        .tag {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 16px;
-            background: #e9ecef;
-            margin: 4px;
-            font-size: 0.9rem;
+        .model-badge {
+            background: linear-gradient(135deg, #7289da, #5b6eae);
         }
     </style>
 </head>
 <body>
-    <div class="nav">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a href="/" class="button">Головна</a>
-            <a href="/commands" class="button">Команди</a>
-            <a href="/debate" class="button">Новий спор</a>
-            <a href="/history" class="button">Історія</a>
-            <a href="/status" class="button">Статус</a>
+            <a class="navbar-brand" href="/">Discord Bot</a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/debate">Новий спор</a>
+                <a class="nav-link" href="/history">Історія</a>
+                <a class="nav-link" href="/stats">Статистика</a>
+            </div>
         </div>
-    </div>
-    <div class="container">
+    </nav>
+    <div class="container py-4">
         {{ content | safe }}
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        
+        socket.on('debate_update', function(data) {
+            // Обновление UI при получении новых данных
+            updateDebateUI(data);
+        });
+        
+        function updateDebateUI(data) {
+            // Добавление новых сообщений в чат
+            const chatContainer = document.getElementById('debate-chat');
+            if (chatContainer && data.message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'alert alert-info animate__animated animate__fadeIn';
+                messageDiv.textContent = data.message;
+                chatContainer.appendChild(messageDiv);
+                messageDiv.scrollIntoView({behavior: 'smooth'});
+            }
+        }
+        
+        function startDebate(settings) {
+            socket.emit('start_debate', settings);
+        }
+    </script>
 </body>
 </html>
 """
@@ -157,7 +137,7 @@ def commands():
         <h3>Работа с библиотеками</h3>
         <p>Получает информацию о программных библиотеках</p>
         <div class="topic-list">
-            <strong>Доступные модели:</strong><br>
+            <strong>Доступные м��дели:</strong><br>
             """ + " ".join([f'<a href="#" class="button">{model}</a>' for model in models]) + """
         </div>
         <p><strong>Использование:</strong> /програма &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
@@ -179,49 +159,81 @@ def status():
 @app.route('/debate')
 def debate():
     content = """
-    <div class="card">
-        <h2>Налаштування нового спору</h2>
-        <form action="/start_debate" method="post">
-            <div class="settings-grid">
-                <div class="card">
-                    <h3>Тема спору</h3>
-                    <div class="topic-grid">
-                        """ + "".join([f'''
-                        <button type="button" class="button" onclick="setTopic('{topic}')">{topic}</button>
-                        ''' for topic in answers.keys()]) + """
-                    </div>
-                    <input type="text" name="custom_topic" placeholder="Або введіть свою тему" class="input">
-                </div>
-                
-                <div class="card">
-                    <h3>Темп спору</h3>
-                    """ + "".join([f'''
-                    <label class="tag">
-                        <input type="radio" name="speed" value="{speed}"> {desc}
-                    </label>
-                    ''' for speed, desc in debate_settings['speeds'].items()]) + """
-                </div>
-                
-                <div class="card">
-                    <h3>Налаштування відповідей</h3>
-                    """ + "".join([f'''
-                    <label class="tag">
-                        <input type="checkbox" name="permissions[]" value="{perm}"> {desc}
-                    </label>
-                    ''' for perm, desc in debate_settings['permissions'].items()]) + """
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title">Налаштування спору</h3>
+                    <form id="debate-form" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label class="form-label">Тема спору</label>
+                            <select class="form-select" name="topic" required>
+                                """ + "".join([
+                                    f'<option value="{topic}">{topic}</option>' 
+                                    for topic in answers.keys()
+                                ]) + """
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Темп спору</label>
+                            <div class="btn-group w-100" role="group">
+                                """ + "".join([
+                                    f'''
+                                    <input type="radio" class="btn-check" name="speed" 
+                                           id="speed_{speed}" value="{speed}" 
+                                           {'checked' if speed == default_settings["speed"] else ''}>
+                                    <label class="btn btn-outline-primary" for="speed_{speed}">
+                                        {settings["name"]}<br>
+                                        <small class="text-muted">{settings["description"]}</small>
+                                    </label>
+                                    ''' for speed, settings in debate_settings["speeds"].items()
+                                ]) + """
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Тип відповідей</label>
+                            <div class="btn-group w-100" role="group">
+                                """ + "".join([
+                                    f'''
+                                    <input type="radio" class="btn-check" name="response_type" 
+                                           id="response_{rtype}" value="{rtype}" 
+                                           {'checked' if rtype == default_settings["response_type"] else ''}>
+                                    <label class="btn btn-outline-primary" for="response_{rtype}">
+                                        {settings["name"]}<br>
+                                        <small class="text-muted">{settings["description"]}</small>
+                                    </label>
+                                    ''' for rtype, settings in debate_settings["response_types"].items()
+                                ]) + """
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Дозволи</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                """ + "".join([
+                                    f'''
+                                    <label class="tag">
+                                        <input type="checkbox" name="permissions[]" 
+                                               value="{perm}" 
+                                               {'checked' if perm in default_settings["permissions"] else ''}>
+                                        {desc}
+                                    </label>
+                                    ''' for perm, desc in debate_settings["permissions"].items()
+                                ]) + """
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Почати спор</button>
+                    </form>
                 </div>
             </div>
-            
-            <div class="card">
-                <button type="submit" class="button">Почати спор</button>
-            </div>
-        </form>
+        </div>
+        
+        <div id="debate-chat" class="mt-4">
+        </div>
     </div>
-    <script>
-        function setTopic(topic) {
-            document.querySelector('input[name="custom_topic"]').value = topic;
-        }
-    </script>
     """
     return render_template_string(BASE_TEMPLATE, content=content)
 
@@ -284,7 +296,7 @@ class Model1(Cog):
             questions = self.read_questions(questions_file)
 
         except ValueError:
-            await ctx.send("Використання: /програма <тема>:<модель1>,<модель2>")
+            await ctx.send("Використання: /програма <т��ма>:<модель1>,<модель2>")
 
     @command(name='спор')
     async def спор_command(self, ctx, *, промт: str = None):
@@ -299,7 +311,18 @@ class Model1(Cog):
 
 bot = DiscordBot()
 
+@socketio.on('start_debate')
+def handle_debate_start(settings):
+    # Обработка начала спора через WebSocket
+    debate_id = len(debate_history) + 1
+    debate_history[debate_id] = {
+        'settings': settings,
+        'messages': [],
+        'status': 'active'
+    }
+    emit('debate_update', {'debate_id': debate_id, 'status': 'started'})
+
 if __name__ == '__main__':
     from threading import Thread
     Thread(target=bot.run, args=(token,)).start()
-    app.run(host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)

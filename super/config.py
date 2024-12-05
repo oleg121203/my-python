@@ -23,19 +23,33 @@ questions = {
 
 debate_settings = {
     "speeds": {
-        "slow": "Повільний темп з детальним обговоренням",
-        "medium": "Середній темп",
-        "fast": "Швидкий темп без затримок"
+        "slow": {"name": "Повільний", "delay": 2.0, "description": "Детальне обговорення кожного аргументу"},
+        "medium": {"name": "Середній", "delay": 1.0, "description": "Збалансований темп дискусії"},
+        "fast": {"name": "Швидкий", "delay": 0.5, "description": "Швидкий обмін аргументами"}
     },
     "response_types": {
-        "short": "Короткі відповіді",
-        "detailed": "Детальні відповіді з аргументацією"
+        "short": {"name": "Короткі", "description": "Лаконічні відповіді по суті"},
+        "detailed": {"name": "Детальні", "description": "Розгорнуті відповіді з аргументацією"},
+        "mixed": {"name": "Змішані", "description": "Комбінація коротких та детальних відповідей"}
+    },
+    "interaction_modes": {
+        "sequential": {"name": "Послідовний", "description": "Моделі відповідають по черзі"},
+        "interactive": {"name": "Інтерактивний", "description": "Моделі можуть взаємодіяти між собою"}
     },
     "permissions": {
-        "model_discussion": "Дозвіл моделям обговорюват�� між собою",
+        "model_discussion": "Дозвіл моделям обговорювати між собою",
         "question_clarification": "Дозвіл уточнювати питання",
         "user_clarification": "Дозвіл запитувати уточнення у користувача"
     }
 }
 
-debate_history = {}  # Для зберігання історії спорів
+# Добавляем настройки по умолчанию
+default_settings = {
+    "speed": "medium",
+    "response_type": "detailed",
+    "interaction_mode": "interactive",
+    "permissions": ["model_discussion", "question_clarification"]
+}
+
+# История дебатов с расширенной структурой
+debate_history = {}
