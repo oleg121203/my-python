@@ -59,12 +59,12 @@
     {% endfor %}
 </div>
 
-<div class="fixed-bottom p-3 bg-white border-top shadow" id="model-selection-bar" style="display: none;">
+<div class="fixed-bottom p-3 bg-white border-top shadow" id="model-selection-bar" style="transform: translateY(100%); transition: transform 0.3s ease;">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <strong>Вибрані моделі: </strong>
-                <div id="selected-models" class="d-inline-block"></div>
+                <div id="selected-models" class="d-flex gap-2"></div>
             </div>
             <button id="start-debate-btn" 
                     class="btn btn-gradient" 
@@ -82,6 +82,7 @@
 {% block extra_js %}
 <script>
 let selectedModels = new Set();
+const socket = io();
 
 function selectModel(btn, modelTitle) {
     const card = btn.closest('.debate-card');
@@ -113,14 +114,19 @@ function updateSelectionBar() {
     const selectedModelsDiv = document.getElementById('selected-models');
     
     if (selectedModels.size > 0) {
-        bar.style.display = 'block';
+        bar.style.transform = 'translateY(0)';
         selectedModelsDiv.innerHTML = Array.from(selectedModels).map(model => 
-            `<span class="badge bg-primary me-1">${model}</span>`
+            `<span class="badge bg-primary d-flex align-items-center">
+                <span class="me-2">${model}</span>
+                <button type="button" class="btn-close btn-close-white" 
+                        onclick="selectModel(document.querySelector('[data-model=\`${model}\`]'), '${model}')">
+                </button>
+            </span>`
         ).join('');
         
         startBtn.disabled = selectedModels.size < 2;
     } else {
-        bar.style.display = 'none';
+        bar.style.transform = 'translateY(100%)';
     }
 }
 
@@ -133,7 +139,8 @@ function startDebate() {
     fetch('/debate/start', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
         },
         body: JSON.stringify({
             models: Array.from(selectedModels)

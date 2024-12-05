@@ -17,11 +17,13 @@ from config import (
     debate_history, 
     default_settings
 )
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__, template_folder='templates')
 CORS(app, resources={r"/*": {"origins": "*"}})  # Разрешаем все источники
 app.config['SECRET_KEY'] = os.urandom(24)
 socketio = SocketIO(app, cors_allowed_origins="*")  # Разрешаем CORS для socketio
+csrf = CSRFProtect(app)
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(PROJECT_DIR, 'token.txt')
@@ -402,32 +404,38 @@ def start_debate():
 
 @app.route('/debate/start', methods=['POST'])
 def start_new_debate():
-    data = request.json
-    selected_models = data.get('models', [])
-    
-    if len(selected_models) < 2:
+    try:
+        data = request.get_json()
+        selected_models = data.get('models', [])
+        
+        if len(selected_models) < 2:
+            return jsonify({
+                'success': False,
+                'error': 'Потрібно вибрати мінімум 2 моделі'
+            })
+        
+        debate_id = len(debate_history) + 1
+        debate_history[debate_id] = {
+            'models': selected_models,
+            'status': 'active',
+            'created_at': datetime.now().isoformat(),
+            'messages': []
+        }
+        
+        socketio.emit('debate_started', {
+            'debate_id': debate_id,
+            'models': selected_models
+        })
+        
+        return jsonify({
+            'success': True,
+            'debate_id': debate_id
+        })
+    except Exception as e:
         return jsonify({
             'success': False,
-            'error': 'Потрібно вибрати мінімум 2 моделі'
-        })
-    
-    debate_id = len(debate_history) + 1
-    debate_history[debate_id] = {
-        'models': selected_models,
-        'status': 'active',
-        'created_at': datetime.now().isoformat(),
-        'messages': []
-    }
-    
-    socketio.emit('debate_started', {
-        'debate_id': debate_id,
-        'models': selected_models
-    })
-    
-    return jsonify({
-        'success': True,
-        'debate_id': debate_id
-    })
+            'error': str(e)
+        }), 500
 
 @app.errorhandler(404)
 def not_found(error):
