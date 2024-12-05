@@ -24,28 +24,41 @@ async def process_model_response(ctx, topic: str, model: str, model_answers: dic
 
 
 async def спор(ctx, промт: str, models_list=None):
-    if промт not in answers:
-        available_topics = ", ".join(answers.keys())
-        await ctx.send(f"Доступні теми: {available_topics}")
-        return
+    try:
+        if ':' in промт:
+            промт, models_list = промт.split(':', 1)
+        
+        промт = промт.strip()
+        if промт not in answers:
+            available_topics = ", ".join(answers.keys())
+            await ctx.send(f"❌ Тема не знайдена. Доступні теми: {available_topics}")
+            return
 
-    current_models = models_list.split(',') if models_list else models
-    model_answers = {}
+        current_models = [m.strip() for m in models_list.split(',')] if models_list else models
+        if not all(model in models for model in current_models):
+            available_models = ", ".join(models)
+            await ctx.send(f"❌ Вказана неправильна модель. Доступні моделі: {available_models}")
+            return
 
-    tasks = [
-        process_model_response(ctx, промт, model, model_answers)
-        for model in current_models
-    ]
+        model_answers = {}
+        tasks = [
+            process_model_response(ctx, промт, model, model_answers)
+            for model in current_models
+        ]
 
-    await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks)
 
-    for model1, answer1 in model_answers.items():
-        for model2, answer2 in model_answers.items():
-            if model1 != model2 and answer1.lower() == answer2.lower():
-                await ctx.send(f"Суперечка була зупинена! Моделі {model1} та {model2} дійшли згоди.")
-                return
+        for model1, answer1 in model_answers.items():
+            for model2, answer2 in model_answers.items():
+                if model1 != model2 and answer1.lower() == answer2.lower():
+                    await ctx.send(f"Суперечка була зупинена! Моделі {model1} та {model2} дійшли згоди.")
+                    return
 
-    if model_answers:
-        await ctx.send("Суперечка триває...")
-    else:
-        await ctx.send("Не знайдено відповідей для вказаних моделей.")
+        if model_answers:
+            await ctx.send("Суперечка триває...")
+        else:
+            await ctx.send("Не знайдено відповідей для вказаних моделей.")
+
+    except Exception as e:
+        await ctx.send(f"❌ Помилка: {str(e)}")
+        await ctx.send("Використання: /спор <тема> або /спор <тема>:<модель1>,<модель2>")

@@ -26,10 +26,10 @@ if __name__ == '__main__':
     class Bot(commands.Bot):
         def __init__(self):
             super().__init__(command_prefix='/', intents=intents)
-            self.tree = discord.app_commands.CommandTree(self)  # Added
+            # Removed self.tree = discord.app_commands.CommandTree(self)
 
         async def setup_hook(self):
-            await self.tree.sync()  # Added
+            # Removed await self.tree.sync()
             await self.add_cog(Model1(self))
 
         async def on_ready(self):
@@ -59,11 +59,19 @@ if __name__ == '__main__':
                 questions = self.read_questions(questions_file)
 
             except ValueError:
-                await ctx.send("Використання: /програма <тема>:<модель1>,<модель2>")
+                await ctx.send("Використання: /програма <т��ма>:<модель1>,<модель2>")
 
         @commands.command(name='спор')
-        async def спор_command(self, ctx, *, промт: str):
-            await спор(ctx, промт)
+        async def спор_command(self, ctx, *, промт: str = None):
+            try:
+                if not промт:
+                    available_topics = ", ".join(answers.keys())
+                    await ctx.send(f"Укажите тему. Доступные темы: {available_topics}")
+                    return
+                await спор(ctx, промт)
+            except Exception as e:
+                await ctx.send(f"❌ Ошибка: {str(e)}")
+                print(f"Error in спор command: {e}")
 
     bot = Bot()
 
