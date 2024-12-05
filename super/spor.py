@@ -41,6 +41,7 @@ questions = {
     }
 }
 
+
 async def process_model_response(ctx, topic: str, model: str, model_answers: dict, question: str = None) -> dict:
     """Asynchronous processing of a single model's response"""
     model = model.strip()
@@ -58,6 +59,7 @@ async def process_model_response(ctx, topic: str, model: str, model_answers: dic
         await ctx.send(f"Модель {model} не може відповісти на питання з теми '{topic}'.")
 
     return model_answers
+
 
 async def спор(ctx, промт: str, models_list=None):
     if промт not in answers:

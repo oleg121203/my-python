@@ -48,27 +48,13 @@ if __name__ == '__main__':
                     await ctx.send("Використання: /програма <тема>:<модель1>,<модель2>")
                     return
 
-                тема, моделі_строка = аргументи.split(':', 1)
-                моделі = [м.strip() for м in моделі_строка.split(',')]
-                
-                if not моделі:
-                    await ctx.send("Потрібно вказати хоча б одну модель")
-                    return
+                тема, моделі = аргументи.split(':', 1)
+                questions_file = os.path.join(
+                    PROJECT_DIR, 'src', 'questions.txt')
+                questions = self.read_questions(questions_file)
 
-                questions_file = os.path.join(PROJECT_DIR, 'src', 'questions.txt')
-                питання = self.read_questions(questions_file)
-                
-                if not питання:
-                    await ctx.send("Не вдалося знайти питання у файлі")
-                    return
-
-                відповідь = f"Тема: {тема}\nМоделі: {', '.join(моделі)}\n\nПитання:\n"
-                відповідь += '\n'.join(f"{i+1}. {q}" for i, q in enumerate(питання))
-                
-                await ctx.send(відповідь)
-
-            except Exception as e:
-                await ctx.send(f"Помилка: {str(e)}")
+            except ValueError:
+                await ctx.send("Використання: /програма <тема>:<модель1>,<модель2>")
 
         @commands.command(name='спор')
         async def спор_command(self, ctx, *, промт: str):
@@ -79,6 +65,6 @@ if __name__ == '__main__':
     try:
         bot.run(token)
     except discord.errors.LoginFailure:
-        print("Помилка: Неправильний токен. Перевірте файл token.txt")
+        print("Помилка: Неправильний токен. Пер��вірте файл token.txt")
     except Exception as e:
         print(f"Помилка: {e}")
