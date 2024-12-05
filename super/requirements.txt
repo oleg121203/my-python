@@ -1,9 +1,23 @@
-discord.py>=2.3.2
-flask>=3.0.0
+# Core dependencies
+Flask==2.3.3
+discord.py==2.3.2
 python-dotenv>=1.0.0
+
+# Flask extensions
+Flask-SocketIO==5.3.6
+Flask-CORS==4.0.0
+Flask-WTF==1.1.1
+
+# WebSocket and async support
+python-socketio==5.9.0
+python-engineio==4.7.1
+eventlet==0.33.3
 aiohttp>=3.9.1
-flask-socketio>=5.3.6
-flask-wtf>=1.2.1
-flask-cors>=4.0.0
-eventlet>=0.33.3  # Добавляем для лучшей работы с WebSocket
-gevent>=23.9.1    # Добавляем как альтернативный бэкенд
+
+# Production server
+gunicorn==21.2.0
+gevent==23.9.1
+gevent-websocket==0.10.1
+
+# Forms
+WTForms>=3.0.1

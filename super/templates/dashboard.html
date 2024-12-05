@@ -31,14 +31,16 @@
                     <button class="btn btn-sm btn-outline-primary" onclick="refreshDebates()">
                         <i class="bi bi-arrow-clockwise"></i>
                     </button>
-                    <a href="/debate/new" class="btn btn-sm btn-primary">
+                    <button class="btn btn-sm btn-primary" onclick="startNewDebate()">
                         <i class="bi bi-plus-lg"></i> Новий спор
-                    </a>
+                    </button>
                 </div>
             </div>
             <div class="card-body p-0">
                 <div id="active-debates-list" class="list-group list-group-flush">
-                    <!-- Dynamic content -->
+                    <div class="debate-log p-3">
+                        <pre id="debate-messages" class="bg-light p-3 rounded"></pre>
+                    </div>
                 </div>
             </div>
         </div>
@@ -86,7 +88,24 @@
 
 {% block extra_js %}
 <script>
-const socket = io();
+const socket = io({
+    transports: ['websocket', 'polling'],
+    path: '/socket.io',
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    autoConnect: true,
+    withCredentials: true
+});
+
+socket.on('connect_error', (error) => {
+    console.error('Socket connection error:', error);
+});
+
+socket.on('connect', () => {
+    console.log('Socket connected successfully');
+});
+
 let activeDebates = new Map();
 
 function refreshDebates() {
@@ -94,6 +113,31 @@ function refreshDebates() {
         .then(response => response.json())
         .then(updateDebatesList);
 }
+
+function startNewDebate() {
+    const topic = prompt("Введіть тему спору:");
+    if (topic) {
+        socket.emit('start_debate', { topic });
+    }
+}
+
+function updateDebatesList(debates) {
+    const list = document.getElementById('active-debates-list');
+    const messages = document.getElementById('debate-messages');
+    
+    debates.forEach(debate => {
+        if (!activeDebates.has(debate.id)) {
+            activeDebates.set(debate.id, debate);
+            messages.innerHTML += `[${new Date().toLocaleTimeString()}] Новий спор: ${debate.topic}\n`;
+        }
+    });
+}
+
+socket.on('debate_message', function(data) {
+    const messages = document.getElementById('debate-messages');
+    messages.innerHTML += `[${new Date().toLocaleTimeString()}] ${data.message}\n`;
+    messages.scrollTop = messages.scrollHeight;
+});
 
 function updateDebatesList(debates) {
     const list = document.getElementById('active-debates-list');

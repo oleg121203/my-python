@@ -18,11 +18,34 @@ from config import (
     default_settings
 )
 from flask_wtf.csrf import CSRFProtect
+import asyncio
 
 app = Flask(__name__, template_folder='templates')
-CORS(app, resources={r"/*": {"origins": "*"}})  # Разрешаем все источники
-app.config['SECRET_KEY'] = os.urandom(24)
-socketio = SocketIO(app, cors_allowed_origins="*")  # Разрешаем CORS для socketio
+app.config.update(
+    SECRET_KEY=os.urandom(24),
+    SESSION_COOKIE_SECURE=False,  # Set to True in production
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax'
+)
+
+# Configure CORS
+CORS(app, 
+    resources={r"/*": {
+        "origins": "*",
+        "allow_headers": ["Content-Type"],
+        "methods": ["GET", "POST", "OPTIONS"]
+    }},
+    supports_credentials=True
+)
+
+# Configure SocketIO
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    logger=True,
+    engineio_logger=True
+)
+
 csrf = CSRFProtect(app)
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -149,7 +172,7 @@ def commands():
         <h3>Сравнение моделей</h3>
         <p>Сравнивает ответы разных моделей по заданной теме</p>
         <div class="topic-list">
-            <strong>Доступные темы:</strong><br>
+            <strong>Доступные ��емы:</strong><br>
             """ + " ".join([f'<a href="#" class="button">{topic}</a>' for topic in answers.keys()]) + """
         </div>
         <p><strong>Использование:</strong> /спор &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
@@ -503,19 +526,19 @@ if __name__ == '__main__':
     bot_thread.daemon = True  # Делаем поток демоном
     bot_thread.start()
     
-    # Run Flask app with updated settings
     socketio.run(
         app,
         host='0.0.0.0',
         port=5000,
         debug=True,
         use_reloader=False,
-        allow_unsafe_werkzeug=True  # Разрешаем небезопасный доступ для разработки
+        allow_unsafe_werkzeug=True,
+        log_output=True
     )
 
 @socketio.on('start_debate')
 def handle_debate_start(settings):
-    # Обработка начала спора через WebSocket
+    # ��бработка начала спора через WebSocket
     debate_id = len(debate_history) + 1
     debate_history[debate_id] = {
         'settings': settings,
@@ -581,3 +604,31 @@ def stop_debate(debate_id):
     return jsonify({'success': False, 'error': 'Debate not found'}), 404
 
 # ...rest of existing code...
+
+@socketio.on('start_debate')
+def handle_debate_start(data):
+    topic = data.get('topic')
+    if topic:
+        debate_id = len(debate_history) + 1
+        debate_history[debate_id] = {
+            'id': debate_id,
+            'topic': topic,
+            'status': 'active',
+            'messages': []
+        }
+        emit('debate_message', {'message': f'Спор розпочато: {topic}'}, broadcast=True)
+        asyncio.create_task(run_debate(debate_id))
+
+async def run_debate(debate_id):
+    debate = debate_history[debate_id]
+    try:
+        while debate['status'] == 'active':
+            # Simulate debate progress
+            await asyncio.sleep(5)
+            message = f"Оновлення спору {debate_id}: {debate['topic']}"
+            socketio.emit('debate_message', {'message': message})
+    except Exception as e:
+        socketio.emit('debate_message', {'message': f'Помилка: {str(e)}'})
+
+if __name__ == '__main__':
+    socketio.run(app, debug=True)
