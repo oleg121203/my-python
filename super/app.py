@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for, render_template_string
+from flask import Flask, request, jsonify, render_template, redirect, url_for, render_template_string, flash
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import os
@@ -17,9 +17,18 @@ from config import (
     Config
 )
 import asyncio
+from flask_sqlalchemy import SQLAlchemy
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Добавляем конфигурацию для базы данных и Flask-Login
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Configure CORS
 CORS(app, 
@@ -56,6 +65,30 @@ intents.typing = True
 intents.presences = True
 intents.guilds = True
 intents.messages = True
+
+# Инициализируем расширения
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+# Модель пользователя
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+
+# Настройка Admin панели
+class SecureModelView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.is_admin
+
+admin = Admin(app, name='Bot Admin', template_mode='bootstrap3')
+admin.add_view(SecureModelView(User, db.session))
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # Базовый HTML шаблон
 BASE_TEMPLATE = """
@@ -147,6 +180,7 @@ def models_page():
                          model_capabilities=answers)
 
 @app.route('/stats')
+@login_required
 def stats():
     stats_data = {
         'total_debates': len(debate_history),
@@ -193,6 +227,7 @@ def status():
     return render_template_string(BASE_TEMPLATE, content=content)
 
 @app.route('/debate')
+@login_required
 def debate():
     content = """
     <div class="row">
@@ -629,6 +664,36 @@ def handle_connect():
 @socketio.on('disconnect')
 def handle_disconnect():
     print('Client disconnected')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for('home'))
+        flash('Invalid username or password')
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
+@app.before_first_request
+def create_admin():
+    db.create_all()
+    if not User.query.filter_by(username='oleg').first():
+        admin = User(
+            username='oleg',
+            password=generate_password_hash('oleg', method='sha256'),
+            is_admin=True
+        )
+        db.session.add(admin)
+        db.session.commit()
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
