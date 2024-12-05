@@ -95,11 +95,18 @@ const socket = io({
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
     autoConnect: true,
-    withCredentials: true
+    withCredentials: true,
+    extraHeaders: {
+        "Access-Control-Allow-Origin": "*"
+    }
 });
 
 socket.on('connect_error', (error) => {
     console.error('Socket connection error:', error);
+    if (socket.io.engine.transport.name === 'websocket') {
+        socket.io.engine.transport.name = 'polling';
+        socket.disconnect().connect();
+    }
 });
 
 socket.on('connect', () => {

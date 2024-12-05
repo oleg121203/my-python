@@ -40,3 +40,25 @@
     background-color: var(--success-color);
     box-shadow: 0 0 10px var(--success-color);
 }
+
+/* Добавляем стили для обработки ошибок */
+.error-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.error-message {
+    background: #ff5757;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}

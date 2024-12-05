@@ -1,8 +1,6 @@
-from flask import Flask, request, jsonify, render_template_string, redirect, url_for, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_socketio import SocketIO, emit
-from flask_cors import CORS  # Добавляем CORS
-from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, SelectMultipleField
+from flask_cors import CORS
 import os
 import json
 from datetime import datetime
@@ -15,38 +13,36 @@ from config import (
     questions, 
     debate_settings, 
     debate_history, 
-    default_settings
+    default_settings,
+    Config
 )
-from flask_wtf.csrf import CSRFProtect
 import asyncio
 
-app = Flask(__name__, template_folder='templates')
-app.config.update(
-    SECRET_KEY=os.urandom(24),
-    SESSION_COOKIE_SECURE=False,  # Set to True in production
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE='Lax'
-)
+app = Flask(__name__)
+app.config.from_object(Config)
 
 # Configure CORS
 CORS(app, 
     resources={r"/*": {
         "origins": "*",
-        "allow_headers": ["Content-Type"],
-        "methods": ["GET", "POST", "OPTIONS"]
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
     }},
     supports_credentials=True
 )
 
-# Configure SocketIO
+# Update SocketIO configuration
 socketio = SocketIO(
     app,
     cors_allowed_origins="*",
+    async_mode='eventlet',
     logger=True,
-    engineio_logger=True
+    engineio_logger=True,
+    ping_timeout=60
 )
 
-csrf = CSRFProtect(app)
+# Удаляем неиспользуемую строку
+# csrf = CSRFProtect(app)
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(PROJECT_DIR, 'token.txt')
@@ -172,17 +168,17 @@ def commands():
         <h3>Сравнение моделей</h3>
         <p>Сравнивает ответы разных моделей по заданной теме</p>
         <div class="topic-list">
-            <strong>Доступные ��емы:</strong><br>
+            <strong>Доступные темы:</strong><br>
             """ + " ".join([f'<a href="#" class="button">{topic}</a>' for topic in answers.keys()]) + """
         </div>
-        <p><strong>Использование:</strong> /спор &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
+        <p><strong>И��пользование:</strong> /спор &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
     </div>
     
     <div class="command-block">
         <h3>Работа с библиотеками</h3>
         <p>Получает информацию о программных библиотеках</p>
         <div class="topic-list">
-            <strong>Д��ступные модели:</strong><br>
+            <strong>Доступные модели:</strong><br>
             """ + " ".join([f'<a href="#" class="button">{model}</a>' for model in models]) + """
         </div>
         <p><strong>Использование:</strong> /програма &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
@@ -538,7 +534,7 @@ if __name__ == '__main__':
 
 @socketio.on('start_debate')
 def handle_debate_start(settings):
-    # ��бработка начала спора через WebSocket
+    # Обработк�� начала спора через WebSocket
     debate_id = len(debate_history) + 1
     debate_history[debate_id] = {
         'settings': settings,

@@ -1,3 +1,13 @@
+import os
+
+class Config:
+    DEBUG = True
+    SECRET_KEY = os.urandom(24)
+    SESSION_COOKIE_SECURE = False
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = None
+    WTF_CSRF_ENABLED = False
+
 models = ['Mixtral 8x7B', 'Qwen2.5', 'Coder 1.5B']
 
 answers = {
