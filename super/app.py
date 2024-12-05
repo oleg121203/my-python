@@ -8,33 +8,28 @@ import discord
 from discord.ext.commands import Bot, Cog, command
 from spor import спор
 from config import (
-    models, 
-    answers, 
-    questions, 
-    debate_settings, 
-    debate_history, 
+    models,
+    answers,
+    questions,
+    debate_settings,
+    debate_history,
     default_settings,
     Config
 )
 import asyncio
-from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
+from models import db, User
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Добавляем конфигурацию для базы данных и Flask-Login
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 # Configure CORS
-CORS(app, 
-    resources={r"/*": {"origins": "*"}},
-    supports_credentials=True
-)
+CORS(app,
+     resources={r"/*": {"origins": "*"}},
+     supports_credentials=True
+     )
 
 # Update SocketIO configuration
 socketio = SocketIO(
@@ -65,30 +60,6 @@ intents.typing = True
 intents.presences = True
 intents.guilds = True
 intents.messages = True
-
-# Инициализируем расширения
-db = SQLAlchemy(app)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-
-# Модель пользователя
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False)
-
-# Настройка Admin панели
-class SecureModelView(ModelView):
-    def is_accessible(self):
-        return current_user.is_authenticated and current_user.is_admin
-
-admin = Admin(app, name='Bot Admin', template_mode='bootstrap3')
-admin.add_view(SecureModelView(User, db.session))
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
 
 # Базовый HTML шаблон
 BASE_TEMPLATE = """
@@ -156,12 +127,14 @@ BASE_TEMPLATE = """
 </html>
 """
 
+
 @app.route('/')
 def home():
-    return render_template('home.html', 
-                         title='Головна',
-                         bot_status='Активний',
-                         active_debates=len(debate_history))
+    return render_template('home.html',
+                           title='Головна',
+                           bot_status='Активний',
+                           active_debates=len(debate_history))
+
 
 @app.route('/models')
 def models_page():
@@ -175,12 +148,12 @@ def models_page():
         model_info = []
 
     return render_template('models.html',
-                         title='Моделі',
-                         model_info=model_info,
-                         model_capabilities=answers)
+                           title='Моделі',
+                           model_info=model_info,
+                           model_capabilities=answers)
+
 
 @app.route('/stats')
-@login_required
 def stats():
     stats_data = {
         'total_debates': len(debate_history),
@@ -188,6 +161,7 @@ def stats():
         'model_usage': {model: 0 for model in models}
     }
     return render_template('stats.html', title='Статистика', stats=stats_data)
+
 
 @app.route('/commands')
 def commands():
@@ -215,6 +189,7 @@ def commands():
     """
     return render_template_string(BASE_TEMPLATE, content=content)
 
+
 @app.route('/status')
 def status():
     content = """
@@ -226,8 +201,8 @@ def status():
     """
     return render_template_string(BASE_TEMPLATE, content=content)
 
+
 @app.route('/debate')
-@login_required
 def debate():
     content = """
     <div class="row">
@@ -240,9 +215,9 @@ def debate():
                             <label class="form-label">Тема спору</label>
                             <select class="form-select" name="topic" required>
                                 """ + "".join([
-                                    f'<option value="{topic}">{topic}</option>' 
-                                    for topic in answers.keys()
-                                ]) + """
+        f'<option value="{topic}">{topic}</option>'
+        for topic in answers.keys()
+    ]) + """
                             </select>
                         </div>
                         
@@ -250,7 +225,7 @@ def debate():
                             <label class="form-label">Темп спору</label>
                             <div class="btn-group w-100" role="group">
                                 """ + "".join([
-                                    f'''
+        f'''
                                     <input type="radio" class="btn-check" name="speed" 
                                            id="speed_{speed}" value="{speed}" 
                                            {'checked' if speed == default_settings["speed"] else ''}>
@@ -259,7 +234,7 @@ def debate():
                                         <small class="text-muted">{settings["description"]}</small>
                                     </label>
                                     ''' for speed, settings in debate_settings["speeds"].items()
-                                ]) + """
+    ]) + """
                             </div>
                         </div>
                         
@@ -267,7 +242,7 @@ def debate():
                             <label class="form-label">Тип відповідей</label>
                             <div class="btn-group w-100" role="group">
                                 """ + "".join([
-                                    f'''
+        f'''
                                     <input type="radio" class="btn-check" name="response_type" 
                                            id="response_{rtype}" value="{rtype}" 
                                            {'checked' if rtype == default_settings["response_type"] else ''}>
@@ -276,7 +251,7 @@ def debate():
                                         <small class="text-muted">{settings["description"]}</small>
                                     </label>
                                     ''' for rtype, settings in debate_settings["response_types"].items()
-                                ]) + """
+    ]) + """
                             </div>
                         </div>
                         
@@ -284,7 +259,7 @@ def debate():
                             <label class="form-label">Дозволи</label>
                             <div class="d-flex flex-wrap gap-2">
                                 """ + "".join([
-                                    f'''
+        f'''
                                     <label class="tag">
                                         <input type="checkbox" name="permissions[]" 
                                                value="{perm}" 
@@ -292,7 +267,7 @@ def debate():
                                         {desc}
                                     </label>
                                     ''' for perm, desc in debate_settings["permissions"].items()
-                                ]) + """
+    ]) + """
                             </div>
                         </div>
                         
@@ -414,13 +389,14 @@ def debate():
     """
     return render_template_string(BASE_TEMPLATE, content=content)
 
+
 @app.route('/create_topic', methods=['POST'])
 def create_topic():
     topic_name = request.form.get('topic_name')
     prompt = request.form.get('prompt')
     aspects = json.loads(request.form.get('aspects', '[]'))
     constraints = request.form.getlist('constraints[]')
-    
+
     # Добавляем новую тему в конфиг
     new_topic = {
         'prompt': prompt,
@@ -428,18 +404,19 @@ def create_topic():
         'constraints': constraints,
         'created_at': datetime.now().isoformat()
     }
-    
+
     debate_settings['custom_topics'] = debate_settings.get('custom_topics', {})
     debate_settings['custom_topics'][topic_name] = new_topic
-    
+
     return jsonify({'success': True, 'topic': topic_name})
+
 
 @app.route('/start_debate', methods=['POST'])
 def start_debate():
     topic = request.form.get('custom_topic')
     speed = request.form.get('speed')
     permissions = request.form.getlist('permissions[]')
-    
+
     # Store debate settings
     debate_id = len(debate_history) + 1
     debate_history[debate_id] = {
@@ -448,21 +425,22 @@ def start_debate():
         'permissions': permissions,
         'status': 'active'
     }
-    
+
     return redirect(f'/debate/{debate_id}')
+
 
 @app.route('/debate/start', methods=['POST'])
 def start_new_debate():
     try:
         data = request.get_json()
         selected_models = data.get('models', [])
-        
+
         if len(selected_models) < 2:
             return jsonify({
                 'success': False,
-                'error': 'Потрібно вибрати мінімум 2 моделі'
+                'error': 'Потрібн�� вибрати мінімум 2 моделі'
             })
-        
+
         debate_id = len(debate_history) + 1
         debate_history[debate_id] = {
             'models': selected_models,
@@ -470,12 +448,12 @@ def start_new_debate():
             'created_at': datetime.now().isoformat(),
             'messages': []
         }
-        
+
         socketio.emit('debate_started', {
             'debate_id': debate_id,
             'models': selected_models
         })
-        
+
         return jsonify({
             'success': True,
             'debate_id': debate_id
@@ -485,6 +463,7 @@ def start_new_debate():
             'success': False,
             'error': str(e)
         }), 500
+
 
 @app.errorhandler(404)
 def not_found(error):
@@ -541,17 +520,20 @@ class Model1(Cog):
         except Exception as e:
             print(f"Error: {e}")
 
+
 bot = DiscordBot()
+
 
 def run_bot():
     bot.run(token)
+
 
 if __name__ == '__main__':
     from threading import Thread
     bot_thread = Thread(target=run_bot)
     bot_thread.daemon = True  # Делаем поток демоном
     bot_thread.start()
-    
+
     socketio.run(
         app,
         host='0.0.0.0',
@@ -561,6 +543,7 @@ if __name__ == '__main__':
         allow_unsafe_werkzeug=True,
         log_output=True
     )
+
 
 @socketio.on('start_debate')
 def handle_debate_start(settings):
@@ -573,11 +556,12 @@ def handle_debate_start(settings):
     }
     emit('debate_update', {'debate_id': debate_id, 'status': 'started'})
 
+
 @socketio.on('select_model')
 def handle_model_selection(data):
     model = data.get('model')
     debate_id = data.get('debate_id', 'current')
-    
+
     if 'current_debate' not in debate_history:
         debate_history['current_debate'] = {
             'models': [],
@@ -585,9 +569,9 @@ def handle_model_selection(data):
             'settings': {},
             'created_at': datetime.now().isoformat()
         }
-    
+
     current_debate = debate_history['current_debate']
-    
+
     if model not in current_debate['models']:
         current_debate['models'].append(model)
         emit('model_selected', {
@@ -596,27 +580,31 @@ def handle_model_selection(data):
             'models': current_debate['models']
         }, broadcast=True)
 
+
 @app.route('/history')
 def debate_history_page():
     # Сортируем дебаты по дате создания
     sorted_debates = sorted(
-        [{'id': k, **v} for k, v in debate_history.items() if k != 'current_debate'],
+        [{'id': k, **v}
+            for k, v in debate_history.items() if k != 'current_debate'],
         key=lambda x: x.get('created_at', ''),
         reverse=True
     )
-    
-    return render_template('history.html', 
-                         title='Історія спорів',
-                         debates=sorted_debates)
+
+    return render_template('history.html',
+                           title='Історія спорів',
+                           debates=sorted_debates)
+
 
 @app.route('/api/debates/active')
 def get_active_debates():
     active_debates = [
-        {'id': k, **v} 
-        for k, v in debate_history.items() 
+        {'id': k, **v}
+        for k, v in debate_history.items()
         if isinstance(k, int) and v.get('status') == 'active'
     ]
     return jsonify(active_debates)
+
 
 @app.route('/api/debates/<int:debate_id>/stop', methods=['POST'])
 def stop_debate(debate_id):
@@ -631,6 +619,7 @@ def stop_debate(debate_id):
 
 # ...rest of existing code...
 
+
 @socketio.on('start_debate')
 def handle_debate_start(data):
     topic = data.get('topic')
@@ -642,8 +631,10 @@ def handle_debate_start(data):
             'status': 'active',
             'messages': []
         }
-        emit('debate_message', {'message': f'Спор розпочато: {topic}'}, broadcast=True)
+        emit('debate_message', {
+             'message': f'Спор розпочато: {topic}'}, broadcast=True)
         asyncio.create_task(run_debate(debate_id))
+
 
 async def run_debate(debate_id):
     debate = debate_history[debate_id]
@@ -656,44 +647,75 @@ async def run_debate(debate_id):
     except Exception as e:
         socketio.emit('debate_message', {'message': f'Помилка: {str(e)}'})
 
+
 @socketio.on('connect')
 def handle_connect():
     print('Client connected')
     socketio.emit('status', {'status': 'connected'})
 
+
 @socketio.on('disconnect')
 def handle_disconnect():
     print('Client disconnected')
 
+
+if __name__ == '__main__':
+    socketio.run(app, debug=True)
+
+# Расширяем конфигурацию
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+# Настраиваем Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Настраиваем админ-панель
+
+
+class SecureModelView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.is_admin
+
+
+admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
+admin.add_view(SecureModelView(User, db.session))
+
+# Добавляем новые маршруты
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password, password):
+        user = User.query.filter_by(username=request.form['username']).first()
+        if user and user.check_password(request.form['password']):
             login_user(user)
-            return redirect(url_for('home'))
+            return redirect(url_for('index'))
         flash('Invalid username or password')
     return render_template('login.html')
+
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+    return redirect(url_for('index'))
+
+# Создаем базу данных и админа при первом запуске
+
 
 @app.before_first_request
 def create_admin():
     db.create_all()
     if not User.query.filter_by(username='oleg').first():
-        admin = User(
-            username='oleg',
-            password=generate_password_hash('oleg', method='sha256'),
-            is_admin=True
-        )
+        admin = User(username='oleg', is_admin=True)
+        admin.set_password('oleg')
         db.session.add(admin)
         db.session.commit()
-
-if __name__ == '__main__':
-    socketio.run(app, debug=True)

@@ -8,6 +8,11 @@ werkzeug==2.3.7  # Specific version for compatibility
 Flask-SocketIO==5.3.6
 Flask-CORS==4.0.0
 
+# Authentication and admin
+Flask-Login==0.6.3
+Flask-Admin==1.6.1
+Flask-SQLAlchemy==3.1.1
+
 # WebSocket and async support
 python-socketio==5.9.0
 python-engineio==4.7.1
