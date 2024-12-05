@@ -8,6 +8,17 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
+class DevelopmentConfig(Config):
+    DEBUG = True
+
+class ProductionConfig(Config):
+    DEBUG = False
+
+class TestingConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+
+
 models = ['Mixtral 8x7B', 'Qwen2.5', 'Coder 1.5B']
 
 answers = {
@@ -17,7 +28,7 @@ answers = {
         "Coder 1.5B": {"answer": "Для створення програми слід використовувати бібліотеку «Coder», оскільки вона має дуже добре підтримку багатьох мов програмування."}
     },
     "Telethon": {
-        "Mixtral 8x7B": {"answer": "Telethon превосходит другие библиотеки благодаря асинхронности, полной поддержке MTProto и высокой производительности."},
+        "Mixtral 8x7B": {"answer": "Telethon превосходит другие библиотеки благодаря асинхро��ности, полной поддержке MTProto и высокой производительности."},
         "Qwen2.5": {"answer": "Python-telegram-bot предпочтительнее Telethon из-за более простого API и лучшей документации."},
         "Coder 1.5B": {"answer": "Telethon - лучший выбор благодаря его гибкости и поддержке всех функций Telegram, включая пользовательские аккаунты."}
     }
@@ -35,7 +46,7 @@ debate_settings = {
     "speeds": {
         "slow": {"name": "Повільний", "delay": 2.0, "description": "Детальне обговорення кожного аргументу"},
         "medium": {"name": "Середній", "delay": 1.0, "description": "Збалансований темп дискусії"},
-        "fast": {"name": "Швидкий", "delay": 0.5, "description": "Швидкий обмін аргументами"}
+        "fast": {"name": "Швидкий", "delay": 0.5, "description": "Швидкий о��мін аргументами"}
     },
     "response_types": {
         "short": {"name": "Короткі", "description": "Лаконічні відповіді по суті"},
