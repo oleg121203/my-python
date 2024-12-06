@@ -1,3 +1,4 @@
+# Flask and extensions imports
 from flask import Flask, request, jsonify, render_template, redirect, url_for, render_template_string, flash
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
@@ -21,6 +22,10 @@ from flask_login import LoginManager, current_user, login_user, logout_user, log
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from models import db, User
+
+# Initialize eventlet first
+import eventlet
+eventlet.monkey_patch()
 
 app = Flask(__name__)
 
@@ -55,17 +60,13 @@ CORS(app,
      supports_credentials=True
      )
 
-# Update SocketIO configuration
-socketio = SocketIO(
-    app,
-    async_mode='gevent',  # Changed from 'eventlet' to 'gevent'
-    logger=True,
-    engineio_logger=True,
-    ping_timeout=60
-)
+# Встановіть інший асинхронний драйв��р
+# Наприклад, можна використовувати gevent, який має менше проблем з Python 3.12
+# pip install gevent gevent-websocket
+from flask_socketio import SocketIO
 
-# Удаляем неиспользуемую строку
-# csrf = CSRFProtect(app)
+# Замініть eventlet на gevent
+socketio = SocketIO(app, async_mode='gevent')
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(PROJECT_DIR, 'token.txt')
@@ -558,6 +559,16 @@ def run_bot():
     bot.run(token)
 
 
+# Configure SocketIO with correct async mode
+socketio = SocketIO(
+    app,
+    async_mode='eventlet',
+    logger=True,
+    engineio_logger=True,
+    cors_allowed_origins="*",
+    async_handlers=True
+)
+
 if __name__ == '__main__':
     from threading import Thread
     bot_thread = Thread(target=run_bot)
@@ -688,9 +699,6 @@ def handle_connect():
 def handle_disconnect():
     print('Client disconnected')
 
-
-if __name__ == '__main__':
-    socketio.run(app, debug=True)
 
 # Расширяем конфигурацию
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'

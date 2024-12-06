@@ -2,22 +2,21 @@
 Flask==2.3.3
 discord.py==2.3.2
 python-dotenv>=1.0.0
-werkzeug==2.3.7  # Specific version for compatibility
+werkzeug==2.3.7
 
-# Flask extensions
-Flask-SocketIO==5.3.6
+# Flask extensions 
 Flask-CORS==4.0.0
-
-# Authentication and admin
 Flask-Login==0.6.3
 Flask-Admin==1.6.1
 Flask-SQLAlchemy==3.1.1
 
-# WebSocket and async support
+# WebSocket stack - порядок важен для установки
 python-socketio==5.9.0
 python-engineio==4.7.1
-gevent==23.9.1  # Replaced eventlet
-gevent-websocket==0.10.1
+Flask-SocketIO==5.3.0
+eventlet==0.33.3
+dnspython==2.4.2  # Добавляем для eventlet
+six>=1.16.0       # Добавляем ��ля eventlet
 
 # Production server
 gunicorn==21.2.0
