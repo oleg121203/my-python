@@ -2,11 +2,13 @@ import os
 
 class Config:
     DEBUG = True
-    SECRET_KEY = os.urandom(24)
+    SECRET_KEY = 'your-secret-key-here'
     SESSION_COOKIE_SECURE = False
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = None
     WTF_CSRF_ENABLED = False
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///users.db'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 models = ['Mixtral 8x7B', 'Qwen2.5', 'Coder 1.5B']
 
@@ -17,7 +19,7 @@ answers = {
         "Coder 1.5B": {"answer": "Для створення програми слід використовувати бібліотеку «Coder», оскільки вона має дуже добре підтримку багатьох мов програмування."}
     },
     "Telethon": {
-        "Mixtral 8x7B": {"answer": "Telethon превосходит другие библиотеки благодаря асинхронности, полной поддержке MTProto и высокой производительности."},
+        "Mixtral 8x7B": {"answer": "Telethon превосходит другие библиотеки благодаря ��синхронности, полной поддержке MTProto и высокой производительности."},
         "Qwen2.5": {"answer": "Python-telegram-bot предпочтительнее Telethon из-за более простого API и лучшей документации."},
         "Coder 1.5B": {"answer": "Telethon - лучший выбор благодаря его гибкости и поддержке всех функций Telegram, включая пользовательские аккаунты."}
     }
