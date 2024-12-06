@@ -35,7 +35,7 @@ login_manager.init_app(app)
 login_manager.login_view = 'auth_bp.login'
 
 # Register blueprints
-app.register_blueprint(auth_bp)
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 # Configure Flask and database
 app.config.from_object(Config)
@@ -90,7 +90,7 @@ try:
     with open(TOKEN_FILE, 'r') as f:
         token = f.read().strip()
 except FileNotFoundError:
-    print(f"Помилка: Файл {TOKEN_FILE} не знайдено")
+    print(f"Помилка: Файл {TOKEN_FILE} не знайд��но")
     exit(1)
 
 intents = discord.Intents.default()
@@ -244,7 +244,7 @@ def status():
     <h1>Статус бота</h1>
     <div class="command">
         <p>Статус: Активен</p>
-        <p>Доступные модели: """ + ", ".join(models) + """</p>
+        <p>Доступны�� модели: """ + ", ".join(models) + """</p>
     </div>
     """
     return render_template_string(BASE_TEMPLATE, content=content)
@@ -332,7 +332,7 @@ def debate():
                     <form id="custom-topic-form">
                         <div class="mb-3">
                             <label class="form-label">Назва теми</label>
-                            <input type="text" class="form-control" name="topic_name" placeholder="Введіть назву теми">
+                            <input type="text" class="form-control" name="topic_name" placeholder="Введіть н��зву теми">
                         </div>
                         
                         <div class="mb-3">
