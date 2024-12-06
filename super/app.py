@@ -23,6 +23,8 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from models import db, User
 from werkzeug.security import check_password_hash, generate_password_hash
+from auth.routes import auth_bp
+from auth import auth
 
 app = Flask(__name__)
 
@@ -35,10 +37,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize database
 db.init_app(app)
 
-# Initialize Flask-Login
+# Initialize Flask-Login (update the login view)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'auth.login'  # Update to use blueprint route
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -156,6 +158,8 @@ BASE_TEMPLATE = """
 </html>
 """
 
+# Register blueprint before other routes
+app.register_blueprint(auth)
 
 @app.route('/')
 def home():
@@ -213,7 +217,7 @@ def commands():
     </div>
     
     <div class="command-block">
-        <h3>Работа с библ��������отеками</h3>
+        <h3>Рабо��а с библ��������отеками</h3>
         <p>Получает инфо��мацию о программных библиотеках</p>
         <div class="topic-list">
             <strong>��оступные модели:</strong><br>
@@ -329,7 +333,7 @@ def debate():
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label">Ключові аспекти</label>
+                            <label class="form-label">��лючові аспекти</label>
                             <div class="input-group mb-2">
                                 <input type="text" class="form-control" placeholder="Додайте ключовий аспект">
                                 <button class="btn btn-outline-secondary" type="button" onclick="addAspect()">+</button>
@@ -364,7 +368,7 @@ def debate():
                 <div class="card-body">
                     <h4>Поточні спори</h4>
                     <div id="active-debates" class="list-group">
-                        <!-- Активные споры будут добавляться сюда -->
+                        <!-- Ак��ивные споры б��дут добавляться сюда -->
                     </div>
                 </div>
             </div>
@@ -473,7 +477,7 @@ def start_new_debate():
         if len(selected_models) < 2:
             return jsonify({
                 'success': False,
-                'error': 'Потрібно вибрати мінімум 2 м��д��лі'
+                'error': 'Потрібно вибрати мінімум 2 м��д���лі'
             })
 
         debate_id = len(debate_history) + 1
@@ -502,7 +506,7 @@ def start_new_debate():
 
 @app.errorhandler(404)
 def not_found(error):
-    content = "<p>Страница не найдена!</p>"
+    content = "<p>Страница н�� найдена!</p>"
     return render_template_string(BASE_TEMPLATE, content=content), 404
 
 
@@ -702,14 +706,14 @@ db.init_app(app)
 # Настраиваем Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'auth.login'
 
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Настраиваем админ-панель
+# Настраива��м админ-панель
 
 
 class SecureModelView(ModelView):
@@ -722,53 +726,8 @@ admin.add_view(SecureModelView(User, db.session))
 
 # Добавляем новые маршруты
 
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
-        
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        remember = request.form.get('remember', False)
-        
-        user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            login_user(user, remember=remember)
-            user.update_last_login()
-            next_page = request.args.get('next')
-            return redirect(next_page or url_for('home'))
-            
-        flash('Невірне ім\'я користувача або пароль')
-    return render_template('login.html', title='Вхід')
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
-        
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        if User.query.filter_by(username=username).first():
-            flash('Користувач вже існує')
-            return redirect(url_for('register'))
-            
-        user = User(username=username)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-        
-        return redirect(url_for('login'))
-    return render_template('register.html', title='Реєстрація')
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('home'))
+# Register the auth blueprint
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 # Создаем базу данных и админа при первом запуске
 

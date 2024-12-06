@@ -6,7 +6,7 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
-                    <h2 class="text-center mb-4">Вхід</h2>
+                    <h2 class="text-center mb-4">Реєстрація</h2>
                     {% with messages = get_flashed_messages() %}
                         {% if messages %}
                             {% for message in messages %}
@@ -14,7 +14,7 @@
                             {% endfor %}
                         {% endif %}
                     {% endwith %}
-                    <form method="POST" action="{{ url_for('auth.login') }}">
+                    <form method="POST" action="{{ url_for('auth.register') }}">
                         <div class="mb-3">
                             <label for="username" class="form-label">Ім'я користувача</label>
                             <input type="text" class="form-control" id="username" name="username" required>
@@ -23,15 +23,9 @@
                             <label for="password" class="form-label">Пароль</label>
                             <input type="password" class="form-control" id="password" name="password" required>
                         </div>
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                                <label class="form-check-label" for="remember">Запам'ятати мене</label>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Увійти</button>
+                        <button type="submit" class="btn btn-primary w-100">Зареєструватися</button>
                         <div class="text-center mt-3">
-                            <a href="{{ url_for('register') }}">Немає акаунту? Зареєструватися</a>
+                            <a href="{{ url_for('auth.login') }}">Вже маєте акаунт? Увійти</a>
                         </div>
                     </form>
                 </div>
