@@ -38,38 +38,27 @@
                 ]
             },
             "extensions": [
-                // Python core
                 "ms-python.python",
                 "ms-python.vscode-pylance",
                 "ms-python.debugpy",
-                
-                // Code formatting & quality
                 "ms-python.black-formatter",
                 "ms-python.isort",
-                
-                // Development helpers
                 "GitHub.copilot",
                 "GitHub.copilot-chat",
                 "eamodio.gitlens",
                 "ms-azuretools.vscode-docker",
-                "Continue.continue-dev",  // Добавляем новую версию Continue
-                
-                // Django development
+                "Continue.continue-dev",
                 "batisteo.vscode-django",
                 "wholroyd.jinja",
-                
-                // Code intelligence - обновленный блок
                 "VisualStudioExptTeam.vscodeintellicode",
                 "VisualStudioExptTeam.vscodeintellicode-completions",
                 "VisualStudioExptTeam.intellicode-api-usage-examples",
-                
-                // Documentation
                 "njpwerner.autodocstring",
-                
-                // Editor enhancements
                 "streetsidesoftware.code-spell-checker",
                 "KevinRose.vsc-python-indent",
-                "MS-CEINTL.vscode-language-pack-ru"
+                "MS-CEINTL.vscode-language-pack-ru",
+                "donjayamanne.githistory",
+                "ms-kubernetes-tools.vscode-kubernetes-tools"
             ]
         }
     },
