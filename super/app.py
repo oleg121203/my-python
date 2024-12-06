@@ -28,11 +28,11 @@ from auth_bp import auth_bp  # Import auth_bp from routes
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Initialize extensions
+# Initialize extensions (only once!)
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'auth_bp.login'
+login_manager.login_view = 'auth.login'
 
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -58,6 +58,11 @@ def load_user(user_id):
 # Create database tables within application context
 with app.app_context():
     db.create_all()
+    if not User.query.filter_by(username='admin').first():
+        admin = User(username='admin', is_admin=True)
+        admin.set_password('admin123')
+        db.session.add(admin)
+        db.session.commit()
 
 # Initialize admin
 admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
@@ -181,7 +186,7 @@ def home():
     return render_template('home.html',
                          title='Головна',
                          bot_status='Активний',
-                         active_debates=len(debate_history))
+                         active_deбates=len(debate_history))
 
 
 @app.route('/models')
@@ -229,7 +234,7 @@ def commands():
         <h3>Рабо��а с библ��������отеками</h3>
         <p>Получает инфо��мацию о программных библиотеках</p>
         <div class="topic-list">
-            <strong>��оступные модели:</strong><br>
+            <strong>��оступные ��одели:</strong><br>
             """ + " ".join([f'<a href="#" class="button">{model}</a>' for model in models]) + """
         </div>
         <p><strong>Использование:</strong> /програма &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>

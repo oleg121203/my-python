@@ -1,4 +1,6 @@
-import os
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
 
 class Config:
     DEBUG = True
@@ -7,7 +9,7 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = None
     WTF_CSRF_ENABLED = False
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///users.db'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///instance/users.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 models = ['Mixtral 8x7B', 'Qwen2.5', 'Coder 1.5B']
@@ -15,7 +17,7 @@ models = ['Mixtral 8x7B', 'Qwen2.5', 'Coder 1.5B']
 answers = {
     "AI Libraries": {
         "Mixtral 8x7B": {"answer": "Для створення програми слід використовувати бібліотеку «Mixtral», оскільки вона має дуже швидку роботу та ефективне використання ресурсів."},
-        "Qwen2.5": {"answer": "Для створення програми слід використовувати бібліотеку «Qwen», оскільки вона має дуже добре спроєктовану архітектуру та високий рівень безпеки."},
+        "Qwen2.5": {"answer": "Для створення програми слід використовувати бібліотеку «Qwen», оскільки вона має ��уже добре спроєктовану архітектуру та високий рівень безпеки."},
         "Coder 1.5B": {"answer": "Для створення програми слід використовувати бібліотеку «Coder», оскільки вона має дуже добре підтримку багатьох мов програмування."}
     },
     "Telethon": {
