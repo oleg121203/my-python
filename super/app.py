@@ -23,8 +23,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from models import db, User
 from werkzeug.security import check_password_hash, generate_password_hash
-from auth.routes import auth_bp
-from auth import auth
+from auth.routes import auth_bp  # Import auth_bp from routes
 
 app = Flask(__name__)
 
@@ -159,7 +158,7 @@ BASE_TEMPLATE = """
 """
 
 # Register blueprint before other routes
-app.register_blueprint(auth)
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 @app.route('/')
 def home():
@@ -546,7 +545,7 @@ class Model1(Cog):
             questions = self.read_questions(questions_file)
 
         except ValueError:
-            await ctx.send("Використання: /програма <тема>:<модель1>,<модель2>")
+            await ctx.send("Використання: /прог��ама <тема>:<модель1>,<модель2>")
 
     @command(name='спор')
     async def spor_command(self, ctx, *, promt: str = None):
