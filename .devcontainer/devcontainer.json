@@ -7,6 +7,8 @@
                 "editor.formatOnSave": true,
                 "editor.formatOnSaveMode": "file",
                 "files.autoSave": "afterDelay",
+                "git.user.name": "Oleg Kizyma",
+                "git.user.email": "oleg1203@gmail.com",
                 "files.autoSaveDelay": 3000,
                 "python.formatting.provider": "black",
                 "python.formatting.blackArgs": [
