@@ -1,5 +1,5 @@
 # Flask and extensions imports
-from flask import Flask, request, jsonify, render_template, redirect, url_for, render_template_string, flash
+from flask import Flask, request, jsonify, render_template, redirect, url_for, render_template_string, flash, Blueprint
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import os
@@ -213,7 +213,7 @@ def commands():
     </div>
     
     <div class="command-block">
-        <h3>Работа с библ����отеками</h3>
+        <h3>Работа с библ��������отеками</h3>
         <p>Получает инфо��мацию о программных библиотеках</p>
         <div class="topic-list">
             <strong>��оступные модели:</strong><br>
@@ -731,10 +731,12 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        remember = request.form.get('remember', False)
         
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
-            login_user(user)
+            login_user(user, remember=remember)
+            user.update_last_login()
             next_page = request.args.get('next')
             return redirect(next_page or url_for('home'))
             
@@ -760,7 +762,6 @@ def register():
         db.session.commit()
         
         return redirect(url_for('login'))
-        
     return render_template('register.html', title='Реєстрація')
 
 @app.route('/logout')
