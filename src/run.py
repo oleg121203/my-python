@@ -1,6 +1,9 @@
-from app import init_app
+from app import create_app
+from config import Config
+import eventlet
+eventlet.monkey_patch()
 
-app = init_app()
+app = create_app(Config)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=Config.DEBUG)

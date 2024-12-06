@@ -1,15 +1,22 @@
 import os
 
 class Config:
-    # Get absolute path to the instance folder
-    INSTANCE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'instance')
-    # Ensure instance folder exists
+    # Базовые настройки
+    INSTANCE_PATH = os.path.join(os.path.dirname(__file__), 'instance')
     os.makedirs(INSTANCE_PATH, exist_ok=True)
     
+    # Flask
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-123'
+    DEBUG = False
+    
+    # Database
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         f'sqlite:///{os.path.join(INSTANCE_PATH, "app.db")}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # Socket.IO
+    SOCKETIO_ASYNC_MODE = 'eventlet'
+    CORS_ALLOWED_ORIGINS = ['http://localhost:5000']
 
 # AI Models configuration
 models = ['Mixtral 8x7B', 'Qwen2.5', 'Coder 1.5B']
