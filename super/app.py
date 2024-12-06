@@ -130,10 +130,16 @@ BASE_TEMPLATE = """
 
 @app.route('/')
 def home():
+    if current_user.is_authenticated:
+        return render_template('home.html',
+                            title='Головна',
+                            bot_status='Активний',
+                            active_debates=len(debate_history),
+                            user=current_user)
     return render_template('home.html',
-                           title='Головна',
-                           bot_status='Активний',
-                           active_debates=len(debate_history))
+                         title='Головна',
+                         bot_status='Активний',
+                         active_debates=len(debate_history))
 
 
 @app.route('/models')
@@ -547,7 +553,7 @@ if __name__ == '__main__':
 
 @socketio.on('start_debate')
 def handle_debate_start(settings):
-    # Обработк�� начала спора через WebSocket
+    # Обработк�� начала сп��ра через WebSocket
     debate_id = len(debate_history) + 1
     debate_history[debate_id] = {
         'settings': settings,
