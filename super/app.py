@@ -58,7 +58,7 @@ CORS(app,
 # Update SocketIO configuration
 socketio = SocketIO(
     app,
-    async_mode='eventlet',
+    async_mode='gevent',  # Changed from 'eventlet' to 'gevent'
     logger=True,
     engineio_logger=True,
     ping_timeout=60
@@ -211,7 +211,7 @@ def commands():
         <h3>Работа с библиотеками</h3>
         <p>Получает информацию о программных библиотеках</p>
         <div class="topic-list">
-            <strong>Доступные модели:</strong><br>
+            <strong>��оступные модели:</strong><br>
             """ + " ".join([f'<a href="#" class="button">{model}</a>' for model in models]) + """
         </div>
         <p><strong>Использование:</strong> /програма &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
