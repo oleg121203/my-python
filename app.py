@@ -4,6 +4,7 @@
 #-----------------------------------------------------------------------------------------
 
 from flask import Flask
+<<<<<<< HEAD
 from auth_bp import auth_bp
 from config import Config
 from models import db, User
@@ -26,7 +27,26 @@ app.register_blueprint(auth_bp, url_prefix='/auth')
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+=======
+from flask_sqlalchemy import SQLAlchemy
+from config import Config
+>>>>>>> main
 
-@app.route("/")
-def hello():
-    return app.send_static_file("index.html")
+db = SQLAlchemy()
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+    
+    db.init_app(app)
+    
+    with app.app_context():
+        from models import User  # Import models after db initialization
+        db.create_all()
+    
+    return app
+
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(debug=True)

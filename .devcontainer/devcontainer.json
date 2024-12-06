@@ -32,6 +32,7 @@
                 "python.analysis.languageServerMode": "default",
                 "python.analysis.indexing": true,
                 "python.analysis.autoImportCompletions": true,
+<<<<<<< HEAD
                 "python.analysis.autoSearchPaths": true,
                 "python.analysis.completeFunctionParens": true,
                 "python.analysis.typeCheckingMode": "basic",
@@ -51,10 +52,33 @@
                     "comments": true,
                     "strings": true
                 }
+=======
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": false,
+                "python.analysis.downloadLanguageServer": true,
+                "python.analysis.typeCheckingMode": "basic",
+                "python.analysis.diagnosticMode": "workspace",
+                "python.analysis.completeFunctionParens": true,
+                "python.analysis.packageIndexDepths": [
+                    [
+                        "",
+                        2
+                    ],
+                    [
+                        "django",
+                        2
+                    ],
+                    [
+                        "rest_framework",
+                        2
+                    ]
+                ]
+>>>>>>> main
             },
             "extensions": [
                 "ms-python.python",
                 "ms-python.vscode-pylance",
+<<<<<<< HEAD
                 "ms-python.black-formatter",
                 "ms-python.isort",
                 "ms-python.autopep8",
@@ -66,6 +90,26 @@
                 "github.copilot-chat",
                 "sourcery.sourcery",
                 "eamodio.gitlens"
+=======
+                "ms-python.debugpy",
+                "ms-python.black-formatter",
+                "ms-python.isort",
+                "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "eamodio.gitlens",
+                "ms-azuretools.vscode-docker",
+                "Continue.continue-dev",
+                "batisteo.vscode-django",
+                "VisualStudioExptTeam.vscodeintellicode",
+                "VisualStudioExptTeam.vscodeintellicode-completions",
+                "VisualStudioExptTeam.intellicode-api-usage-examples",
+                "njpwerner.autodocstring",
+                "streetsidesoftware.code-spell-checker",
+                "MS-CEINTL.vscode-language-pack-ru",
+                "donjayamanne.githistory",
+                "ms-kubernetes-tools.vscode-kubernetes-tools",
+                "DavidAnson.vscode-markdownlint"
+>>>>>>> main
             ]
         }
     },
@@ -78,6 +122,7 @@
     "mounts": [
         "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
     ],
+<<<<<<< HEAD
     "postCreateCommand": "/bin/bash -c \"set -e && \
     apk add --no-cache python3 py3-pip && \
     ln -sf python3 /usr/bin/python && \
@@ -89,4 +134,16 @@
     chmod 600 ~/.ssh/id_rsa && \
     chmod 644 ~/.ssh/id_rsa.pub\"",
     "remoteUser": "vscode"
+=======
+    "postCreateCommand": "/bin/bash -c '\
+    python3 -m pip install --user --upgrade pip && \
+    pip install --user -r requirements.txt && \
+    pip install --user -r src/requirements.txt && \
+    chmod 600 ~/.ssh/id_rsa && \
+    chmod 644 ~/.ssh/id_rsa.pub && \
+    eval \"$(ssh-agent -s)\" && \
+    ssh-add ~/.ssh/id_rsa && \
+    git config --global user.name \"Oleg Kizyma\" && \
+    git config --global user.email \"oleg1203@gmail.com\"'"
+>>>>>>> main
 }

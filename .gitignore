@@ -330,5 +330,9 @@ ASALocalRun/
 .mfractor/
 
 *.DS_Store
+<<<<<<< HEAD
 super/token.txt
+=======
+.env
+>>>>>>> main
 super/token.txt
