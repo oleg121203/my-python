@@ -29,29 +29,36 @@
                 "python.testing.unittestEnabled": false
             },
             "extensions": [
-                "streetsidesoftware.code-spell-checker",
-                "KevinRose.vsc-python-indent",
-                "wholroyd.jinja",
-                "MS-CEINTL.vscode-language-pack-ru",
-                "donjayamanne.python-extension-pack",
-                "donjayamanne.python-environment-manager",
-                "ms-python.debugpy",
+                // Python core
                 "ms-python.python",
                 "ms-python.vscode-pylance",
-                "VisualStudioExptTeam.intellicode-api-usage-examples",
-                "VisualStudioExptTeam.vscodeintellicode",
-                "dbaeumer.vscode-eslint",
-                "ms-azuretools.vscode-docker",
-                "batisteo.vscode-django",
-                "openai.openai-chatgpt-adhoc",
-                "ms-python.autopep8",
-                "njpwerner.autodocstring",
-                "Continue.continue",
-                "GitHub.copilot-chat",
-                "GitHub.copilot",
+                "ms-python.debugpy",
+                
+                // Code formatting & quality
                 "ms-python.black-formatter",
                 "ms-python.isort",
-                "eamodio.gitlens"
+                
+                // Development helpers
+                "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "eamodio.gitlens",
+                "ms-azuretools.vscode-docker",
+                
+                // Django development
+                "batisteo.vscode-django",
+                "wholroyd.jinja",
+                
+                // Code intelligence
+                "VisualStudioExptTeam.vscodeintellicode",
+                "VisualStudioExptTeam.intellicode-api-usage-examples",
+                
+                // Documentation
+                "njpwerner.autodocstring",
+                
+                // Editor enhancements
+                "streetsidesoftware.code-spell-checker",
+                "KevinRose.vsc-python-indent",
+                "MS-CEINTL.vscode-language-pack-ru"
             ]
         }
     },
