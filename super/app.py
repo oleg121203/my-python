@@ -24,7 +24,7 @@ from flask_admin.contrib.sqla import ModelView
 from models import db, User
 from werkzeug.security import check_password_hash, generate_password_hash
 from auth.routes import auth_bp  # Import auth_bp from routes
-from auth import auth
+from auth import auth_bp  # Import only auth_bp
 
 app = Flask(__name__)
 
@@ -160,7 +160,6 @@ BASE_TEMPLATE = """
 
 # Register blueprint before other routes
 app.register_blueprint(auth_bp, url_prefix='/auth')
-app.register_blueprint(auth, url_prefix='/auth')
 
 @app.route('/')
 def home():
@@ -519,7 +518,7 @@ class DiscordBot(Bot):
         await self.add_cog(Model1(self))
 
     async def on_ready(self):
-        print(f"Бот запущено! Ім'я користувача: {self.user.name}")
+        print(f"Бот ��апущено! Ім'я користувача: {self.user.name}")
 
 
 class Model1(Cog):
@@ -554,7 +553,7 @@ class Model1(Cog):
         try:
             if not promt:
                 available_topics = ", ".join(answers.keys())
-                await ctx.send(f"Укажите тему. Доступные темы: {available_topics}")
+                await ctx.send(f"��кажите тему. Доступные темы: {available_topics}")
                 return
             await спор(ctx, promt)  # Fixed the character encoding here
         except Exception as e:
