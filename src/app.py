@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for, render_template_string, flash
+# Flask and extensions imports
+from flask import Flask, request, jsonify, render_template, redirect, url_for, render_template_string, flash, Blueprint
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import os
@@ -21,8 +22,11 @@ from flask_login import LoginManager, current_user, login_user, logout_user, log
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from models import db, User
+from werkzeug.security import check_password_hash, generate_password_hash
+from auth_bp import auth_bp  # Import auth_bp from routes
 
 
+<<<<<<< HEAD:src/app.py
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -68,6 +72,68 @@ class SecureModelView(ModelView):
 
 app, socketio = create_app(Config)
 
+=======
+# Initialize extensions (only once!)
+db.init_app(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login'
+
+# Register blueprints
+app.register_blueprint(auth_bp, url_prefix='/auth')
+
+# Configure Flask and database
+app.config.from_object(Config)
+app.secret_key = 'your-secret-key-here'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize database
+db.init_app(app)
+
+# Initialize Flask-Login (update the login view)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login'  # Update to use blueprint route
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Create database tables within application context
+with app.app_context():
+    db.create_all()
+    if not User.query.filter_by(username='admin').first():
+        admin = User(username='admin', is_admin=True)
+        admin.set_password('admin123')
+        db.session.add(admin)
+        db.session.commit()
+
+# Initialize admin
+admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
+
+# Configure CORS
+CORS(app,
+     resources={r"/*": {"origins": "*"}},
+     supports_credentials=True
+     )
+
+# Встановіть інший асинхронний драйв��р
+# Наприклад, можна використовувати gevent, який має менше проблем з Python 3.12
+# pip install gevent gevent-websocket
+from flask_socketio import SocketIO
+
+# Single SocketIO configuration
+socketio = SocketIO(
+    app,
+    async_mode='threading',  # Use threading instead of eventlet/gevent
+    logger=True,
+    engineio_logger=True,
+    cors_allowed_origins="*",
+    ping_timeout=60
+)
+
+>>>>>>> fix-cache:super/app.py
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(PROJECT_DIR, 'token.txt')
 
@@ -75,7 +141,7 @@ try:
     with open(TOKEN_FILE, 'r') as f:
         token = f.read().strip()
 except FileNotFoundError:
-    print(f"Помилка: Файл {TOKEN_FILE} не знайдено")
+    print(f"Помилка: Файл {TOKEN_FILE} не знайд��но")
     exit(1)
 
 intents = discord.Intents.default()
@@ -86,7 +152,7 @@ intents.presences = True
 intents.guilds = True
 intents.messages = True
 
-# Базовый HTML шаблон
+# Базовый HTML шаб��он
 BASE_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -114,7 +180,7 @@ BASE_TEMPLATE = """
             <a class="navbar-brand" href="/">Discord Bot</a>
             <div class="navbar-nav">
                 <a class="nav-link" href="/debate">Новий спір</a>
-                <a class="nav-link" href="/history">Історія</a>
+                <a class="nav-link" href="/history">Історі����</a>
                 <a class="nav-link" href="/stats">Статистика</a>
             </div>
         </div>
@@ -152,6 +218,7 @@ BASE_TEMPLATE = """
 </html>
 """
 
+<<<<<<< HEAD:src/app.py
 # Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -190,20 +257,30 @@ def logout():
 
 # Update existing route decorators to require login
 
+=======
+# Register blueprint before other routes
+app.register_blueprint(auth_bp, url_prefix='/auth')
+>>>>>>> fix-cache:super/app.py
 
 @app.route('/')
 @login_required
 def home():
+    if current_user.is_authenticated:
+        return render_template('home.html',
+                            title='Головна',
+                            bot_status='Акт��вний',
+                            active_debates=len(debate_history),
+                            user=current_user)
     return render_template('home.html',
-                           title='Головна',
-                           bot_status='Активний',
-                           active_debates=len(debate_history))
+                         title='Головна',
+                         bot_status='Активний',
+                         active_deбates=len(debate_history))
 
 
 @app.route('/models')
 @login_required
 def models_page():
-    # Загружаем конфигурацию моделей из файла Continue
+    # За��ружаем конфигурацию моделей из файла Continue
     continue_config_path = os.path.expanduser('~/.continue/config.json')
     try:
         with open(continue_config_path, 'r') as f:
@@ -245,10 +322,10 @@ def commands():
     </div>
     
     <div class="command-block">
-        <h3>Работа с библиотеками</h3>
-        <p>Получает информацию о программных библиотеках</p>
+        <h3>Рабо��а с библ��������отеками</h3>
+        <p>Получает инфо��мацию о программных библиотеках</p>
         <div class="topic-list">
-            <strong>Доступные модели:</strong><br>
+            <strong>��оступные ��одели:</strong><br>
             """ + " ".join([f'<a href="#" class="button">{model}</a>' for model in models]) + """
         </div>
         <p><strong>Использование:</strong> /програма &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
@@ -263,7 +340,7 @@ def status():
     <h1>Статус бота</h1>
     <div class="command">
         <p>Статус: Активен</p>
-        <p>Доступные модели: """ + ", ".join(models) + """</p>
+        <p>Доступны�� модели: """ + ", ".join(models) + """</p>
     </div>
     """
     return render_template_string(BASE_TEMPLATE, content=content)
@@ -352,7 +429,7 @@ def debate():
                     <form id="custom-topic-form">
                         <div class="mb-3">
                             <label class="form-label">Назва теми</label>
-                            <input type="text" class="form-control" name="topic_name" placeholder="Введіть назву теми">
+                            <input type="text" class="form-control" name="topic_name" placeholder="Введіть н��зву теми">
                         </div>
                         
                         <div class="mb-3">
@@ -362,13 +439,13 @@ def debate():
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label">Ключові аспекти</label>
+                            <label class="form-label">��лючові аспекти</label>
                             <div class="input-group mb-2">
                                 <input type="text" class="form-control" placeholder="Додайте ключовий аспект">
                                 <button class="btn btn-outline-secondary" type="button" onclick="addAspect()">+</button>
                             </div>
                             <div id="aspects-list" class="d-flex flex-wrap gap-2">
-                                <!-- Аспекты будут добавляться сюда -->
+                                <!-- Аспекты будут добав��яться сюда -->
                             </div>
                         </div>
                         
@@ -384,7 +461,7 @@ def debate():
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="constraints[]" value="sources_required">
-                                <label class="form-check-label">Потрібні джерела</label>
+                                <label class="form-check-label">Потрібні д��ерела</label>
                             </div>
                         </div>
                         
@@ -397,7 +474,7 @@ def debate():
                 <div class="card-body">
                     <h4>Поточні спори</h4>
                     <div id="active-debates" class="list-group">
-                        <!-- Активные споры будут добавляться сюда -->
+                        <!-- Ак��ивные споры б��дут добавляться сюда -->
                     </div>
                 </div>
             </div>
@@ -465,7 +542,7 @@ def create_topic():
     aspects = json.loads(request.form.get('aspects', '[]'))
     constraints = request.form.getlist('constraints[]')
 
-    # Добавляем новую тему в конфиг
+    # Добав��яем новую тему в конфиг
     new_topic = {
         'prompt': prompt,
         'aspects': aspects,
@@ -506,7 +583,11 @@ def start_new_debate():
         if len(selected_models) < 2:
             return jsonify({
                 'success': False,
+<<<<<<< HEAD:src/app.py
                 'error': 'Потрібно вибрати мінімум 2 моделі'
+=======
+                'error': 'Потрібно вибрати мінімум 2 м��д���лі'
+>>>>>>> fix-cache:super/app.py
             })
 
         debate_id = len(debate_history) + 1
@@ -535,7 +616,7 @@ def start_new_debate():
 
 @app.errorhandler(404)
 def not_found(error):
-    content = "<p>Страница не найдена!</p>"
+    content = "<p>Страница н�� найдена!</p>"
     return render_template_string(BASE_TEMPLATE, content=content), 404
 
 
@@ -547,7 +628,7 @@ class DiscordBot(Bot):
         await self.add_cog(Model1(self))
 
     async def on_ready(self):
-        print(f"Бот запущено! Ім'я користувача: {self.user.name}")
+        print(f"Бот ��апущено! Ім'я користувача: {self.user.name}")
 
 
 class Model1(Cog):
@@ -575,16 +656,16 @@ class Model1(Cog):
             questions = self.read_questions(questions_file)
 
         except ValueError:
-            await ctx.send("Використання: /програма <тема>:<модель1>,<модель2>")
+            await ctx.send("Використання: /прог��ама <тема>:<модель1>,<модель2>")
 
     @command(name='спор')
     async def spor_command(self, ctx, *, promt: str = None):
         try:
             if not promt:
                 available_topics = ", ".join(answers.keys())
-                await ctx.send(f"Укажите тему. Доступные темы: {available_topics}")
+                await ctx.send(f"��кажите тему. Доступные темы: {available_topics}")
                 return
-            await спор(ctx, promt)
+            await спор(ctx, promt)  # Fixed the character encoding here
         except Exception as e:
             print(f"Error: {e}")
 
@@ -602,13 +683,13 @@ if __name__ == '__main__':
     bot_thread.daemon = True  # Делаем поток демоном
     bot_thread.start()
 
+    # Updated socketio.run() without problematic parameter
     socketio.run(
         app,
         host='0.0.0.0',
         port=5000,
         debug=True,
         use_reloader=False,
-        allow_unsafe_werkzeug=True,
         log_output=True
     )
 
@@ -730,9 +811,6 @@ def handle_disconnect():
     print('Client disconnected')
 
 
-if __name__ == '__main__':
-    socketio.run(app, debug=True)
-
 # Расширяем конфигурацию
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -741,14 +819,14 @@ db.init_app(app)
 # Настраиваем Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'auth.login'
 
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Настраиваем админ-панель
+# Настраива��м админ-панель
 
 
 class SecureModelView(ModelView):
@@ -761,23 +839,8 @@ admin.add_view(SecureModelView(User, db.session))
 
 # Добавляем новые маршруты
 
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        user = User.query.filter_by(username=request.form['username']).first()
-        if user and user.check_password(request.form['password']):
-            login_user(user)
-            return redirect(url_for('index'))
-        flash('Invalid username or password')
-    return render_template('login.html')
-
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
+# Register the auth blueprint
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 # Создаем базу данных и админа при первом запуске
 
@@ -791,6 +854,7 @@ def create_admin():
         db.session.add(admin)
         db.session.commit()
 
+<<<<<<< HEAD:src/app.py
 
 from app import create_app
 from app.models import db, User
@@ -815,3 +879,13 @@ if __name__ == '__main__':
             print(f"Error initializing database: {e}")
     
     app.run(debug=True)
+=======
+# Initialize database with admin user
+with app.app_context():
+    db.create_all()
+    if not User.query.filter_by(username='admin').first():
+        admin = User(username='admin', is_admin=True)
+        admin.set_password('admin123')  # Change this password in production
+        db.session.add(admin)
+        db.session.commit()
+>>>>>>> fix-cache:super/app.py

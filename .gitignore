@@ -330,5 +330,49 @@ ASALocalRun/
 .mfractor/
 
 *.DS_Store
+<<<<<<< HEAD
 .env
 super/token.txt
+=======
+super/token.txt
+super/token.txt
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.class
+.pytest_cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+.env
+.venv
+
+# IDE
+.vscode/
+.idea/
+>>>>>>> fix-cache
