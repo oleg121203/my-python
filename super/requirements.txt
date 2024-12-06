@@ -10,13 +10,11 @@ Flask-Login==0.6.3
 Flask-Admin==1.6.1
 Flask-SQLAlchemy==3.1.1
 
-# WebSocket stack - порядок важен для установки
+# WebSocket stack - обновленные версии
 python-socketio==5.9.0
 python-engineio==4.7.1
-Flask-SocketIO==5.3.0
-eventlet==0.33.3
-dnspython==2.4.2  # Добавляем для eventlet
-six>=1.16.0       # Добавляем ��ля eventlet
+Flask-SocketIO==5.3.6
+simple-websocket>=0.10.1
 
 # Production server
 gunicorn==21.2.0

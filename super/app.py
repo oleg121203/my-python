@@ -23,10 +23,6 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from models import db, User
 
-# Initialize eventlet first
-import eventlet
-eventlet.monkey_patch()
-
 app = Flask(__name__)
 
 # Configure Flask and database
@@ -65,8 +61,15 @@ CORS(app,
 # pip install gevent gevent-websocket
 from flask_socketio import SocketIO
 
-# Замініть eventlet на gevent
-socketio = SocketIO(app, async_mode='gevent')
+# Single SocketIO configuration
+socketio = SocketIO(
+    app,
+    async_mode='threading',  # Use threading instead of eventlet/gevent
+    logger=True,
+    engineio_logger=True,
+    cors_allowed_origins="*",
+    ping_timeout=60
+)
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(PROJECT_DIR, 'token.txt')
@@ -86,7 +89,7 @@ intents.presences = True
 intents.guilds = True
 intents.messages = True
 
-# Базовый HTML шаблон
+# Базовый HTML шаб��он
 BASE_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -114,7 +117,7 @@ BASE_TEMPLATE = """
             <a class="navbar-brand" href="/">Discord Bot</a>
             <div class="navbar-nav">
                 <a class="nav-link" href="/debate">Новий спір</a>
-                <a class="nav-link" href="/history">Історія</a>
+                <a class="nav-link" href="/history">Історі��</a>
                 <a class="nav-link" href="/stats">Статистика</a>
             </div>
         </div>
@@ -210,7 +213,7 @@ def commands():
     
     <div class="command-block">
         <h3>Работа с библиотеками</h3>
-        <p>Получает информацию о программных библиотеках</p>
+        <p>Получает инфо��мацию о программных библиотеках</p>
         <div class="topic-list">
             <strong>��оступные модели:</strong><br>
             """ + " ".join([f'<a href="#" class="button">{model}</a>' for model in models]) + """
@@ -428,7 +431,7 @@ def create_topic():
     aspects = json.loads(request.form.get('aspects', '[]'))
     constraints = request.form.getlist('constraints[]')
 
-    # Добавляем новую тему в конфиг
+    # Добав��яем новую тему в конфиг
     new_topic = {
         'prompt': prompt,
         'aspects': aspects,
@@ -559,29 +562,19 @@ def run_bot():
     bot.run(token)
 
 
-# Configure SocketIO with correct async mode
-socketio = SocketIO(
-    app,
-    async_mode='eventlet',
-    logger=True,
-    engineio_logger=True,
-    cors_allowed_origins="*",
-    async_handlers=True
-)
-
 if __name__ == '__main__':
     from threading import Thread
     bot_thread = Thread(target=run_bot)
     bot_thread.daemon = True  # Делаем поток демоном
     bot_thread.start()
 
+    # Updated socketio.run() without problematic parameter
     socketio.run(
         app,
         host='0.0.0.0',
         port=5000,
         debug=True,
         use_reloader=False,
-        allow_unsafe_werkzeug=True,
         log_output=True
     )
 
