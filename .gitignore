@@ -332,3 +332,10 @@ ASALocalRun/
 *.DS_Store
 super/token.txt
 super/token.txt
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.class
+.pytest_cache/
+
