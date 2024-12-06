@@ -7,12 +7,18 @@ from flask import Flask
 from auth_bp import auth_bp
 from config import Config
 from models import db
+from flask_login import LoginManager
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 # Initialize extensions
 db.init_app(app)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth_bp.login'  # Обновлено на 'auth_bp.login'
 
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
