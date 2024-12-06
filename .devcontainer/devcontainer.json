@@ -32,9 +32,18 @@
                 "python.analysis.diagnosticMode": "workspace",
                 "python.analysis.completeFunctionParens": true,
                 "python.analysis.packageIndexDepths": [
-                    ["", 2],
-                    ["django", 2],
-                    ["rest_framework", 2]
+                    [
+                        "",
+                        2
+                    ],
+                    [
+                        "django",
+                        2
+                    ],
+                    [
+                        "rest_framework",
+                        2
+                    ]
                 ]
             },
             "extensions": [
@@ -49,16 +58,15 @@
                 "ms-azuretools.vscode-docker",
                 "Continue.continue-dev",
                 "batisteo.vscode-django",
-                "wholroyd.jinja",
                 "VisualStudioExptTeam.vscodeintellicode",
                 "VisualStudioExptTeam.vscodeintellicode-completions",
                 "VisualStudioExptTeam.intellicode-api-usage-examples",
                 "njpwerner.autodocstring",
                 "streetsidesoftware.code-spell-checker",
-                "KevinRose.vsc-python-indent",
                 "MS-CEINTL.vscode-language-pack-ru",
                 "donjayamanne.githistory",
-                "ms-kubernetes-tools.vscode-kubernetes-tools"
+                "ms-kubernetes-tools.vscode-kubernetes-tools",
+                "DavidAnson.vscode-markdownlint"
             ]
         }
     },
