@@ -1,7 +1,8 @@
+
 from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from models import User, db
-from . import auth_bp  # Import auth_bp instead of auth
+from . import auth_bp
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -20,7 +21,7 @@ def login():
             return redirect(next_page or url_for('home'))
             
         flash('Невірне ім\'я користувача або пароль')
-    return render_template('auth/login.html', title='Вхід')
+    return render_template('auth_bp/login.html', title='Вхід')
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -41,7 +42,7 @@ def register():
         db.session.commit()
         
         return redirect(url_for('auth_bp.login'))
-    return render_template('auth/register.html', title='Реєстрація')
+    return render_template('auth_bp/register.html', title='Реєстрація')
 
 @auth_bp.route('/logout')
 @login_required

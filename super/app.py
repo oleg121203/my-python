@@ -23,10 +23,11 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from models import db, User
 from werkzeug.security import check_password_hash, generate_password_hash
-from auth.routes import auth_bp  # Import auth_bp from routes
-from auth import auth_bp  # Import only auth_bp
+from auth_bp import auth_bp  # Import auth_bp from routes
 
 app = Flask(__name__)
+app.config.from_object(Config)
+app.register_blueprint(auth_bp)
 
 # Configure Flask and database
 app.config.from_object(Config)
@@ -120,7 +121,7 @@ BASE_TEMPLATE = """
             <a class="navbar-brand" href="/">Discord Bot</a>
             <div class="navbar-nav">
                 <a class="nav-link" href="/debate">Новий спір</a>
-                <a class="nav-link" href="/history">Історі��</a>
+                <a class="nav-link" href="/history">Історі����</a>
                 <a class="nav-link" href="/stats">Статистика</a>
             </div>
         </div>
@@ -339,7 +340,7 @@ def debate():
                                 <button class="btn btn-outline-secondary" type="button" onclick="addAspect()">+</button>
                             </div>
                             <div id="aspects-list" class="d-flex flex-wrap gap-2">
-                                <!-- Аспекты будут добавляться сюда -->
+                                <!-- Аспекты будут добав��яться сюда -->
                             </div>
                         </div>
                         
@@ -355,7 +356,7 @@ def debate():
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="constraints[]" value="sources_required">
-                                <label class="form-check-label">Потрібні джерела</label>
+                                <label class="form-check-label">Потрібні д��ерела</label>
                             </div>
                         </div>
                         
