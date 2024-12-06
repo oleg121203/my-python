@@ -1,32 +1,52 @@
 # Flask and extensions imports
-from flask import Flask, request, jsonify, render_template, redirect, url_for, render_template_string, flash, Blueprint
-from flask_socketio import SocketIO, emit
-from flask_cors import CORS
-import os
-import json
-from datetime import datetime
-import discord
-from discord.ext.commands import Bot, Cog, command
-from spor import спор
-from config import (
-    models,
-    answers,
-    questions,
-    debate_settings,
-    debate_history,
-    default_settings,
-    Config
-)
+from app.models import User, db
+from app import create_app
+from flask_login import current_user
 import asyncio
-from flask_login import LoginManager, current_user, login_user, logout_user, login_required
+import json
+import os
+from datetime import datetime
+
+import discord
+from auth_bp import auth_bp  # Import auth_bp from routes
+from discord.ext.commands import Bot, Cog, command
+from flask import (
+    Blueprint,
+    Flask,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    render_template_string,
+    request,
+    url_for,
+)
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from models import db, User
+from flask_cors import CORS
+from flask_login import (
+    LoginManager,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
+from flask_socketio import SocketIO, emit
 from werkzeug.security import check_password_hash, generate_password_hash
-from auth_bp import auth_bp  # Import auth_bp from routes
+
+from config import (
+    Config,
+    answers,
+    debate_history,
+    debate_settings,
+    default_settings,
+    models,
+    questions,
+)
+from models import User, db
+from spor import спор
 
 
-<<<<<<< HEAD:src/app.py
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -58,9 +78,6 @@ def create_app(config_class=Config):
     return app, socketio
 
 
-from flask_admin.contrib.sqla import ModelView
-from flask_login import current_user
-
 class SecureModelView(ModelView):
     def is_accessible(self):
         return current_user.is_authenticated and current_user.is_admin
@@ -70,70 +87,9 @@ class SecureModelView(ModelView):
 
 # ...existing code...
 
+
 app, socketio = create_app(Config)
 
-=======
-# Initialize extensions (only once!)
-db.init_app(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'auth.login'
-
-# Register blueprints
-app.register_blueprint(auth_bp, url_prefix='/auth')
-
-# Configure Flask and database
-app.config.from_object(Config)
-app.secret_key = 'your-secret-key-here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Initialize database
-db.init_app(app)
-
-# Initialize Flask-Login (update the login view)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'auth.login'  # Update to use blueprint route
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-# Create database tables within application context
-with app.app_context():
-    db.create_all()
-    if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', is_admin=True)
-        admin.set_password('admin123')
-        db.session.add(admin)
-        db.session.commit()
-
-# Initialize admin
-admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
-
-# Configure CORS
-CORS(app,
-     resources={r"/*": {"origins": "*"}},
-     supports_credentials=True
-     )
-
-# Встановіть інший асинхронний драйв��р
-# Наприклад, можна використовувати gevent, який має менше проблем з Python 3.12
-# pip install gevent gevent-websocket
-from flask_socketio import SocketIO
-
-# Single SocketIO configuration
-socketio = SocketIO(
-    app,
-    async_mode='threading',  # Use threading instead of eventlet/gevent
-    logger=True,
-    engineio_logger=True,
-    cors_allowed_origins="*",
-    ping_timeout=60
-)
-
->>>>>>> fix-cache:super/app.py
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(PROJECT_DIR, 'token.txt')
 
@@ -218,7 +174,6 @@ BASE_TEMPLATE = """
 </html>
 """
 
-<<<<<<< HEAD:src/app.py
 # Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -257,24 +212,20 @@ def logout():
 
 # Update existing route decorators to require login
 
-=======
-# Register blueprint before other routes
-app.register_blueprint(auth_bp, url_prefix='/auth')
->>>>>>> fix-cache:super/app.py
 
 @app.route('/')
 @login_required
 def home():
     if current_user.is_authenticated:
         return render_template('home.html',
-                            title='Головна',
-                            bot_status='Акт��вний',
-                            active_debates=len(debate_history),
-                            user=current_user)
+                               title='Головна',
+                               bot_status='Акт��вний',
+                               active_debates=len(debate_history),
+                               user=current_user)
     return render_template('home.html',
-                         title='Головна',
-                         bot_status='Активний',
-                         active_deбates=len(debate_history))
+                           title='Головна',
+                           bot_status='Активний',
+                           active_deбates=len(debate_history))
 
 
 @app.route('/models')
@@ -371,8 +322,8 @@ def debate():
                             <div class="btn-group w-100" role="group">
                                 """ + "".join([
         f'''
-                                    <input type="radio" class="btn-check" name="speed" 
-                                           id="speed_{speed}" value="{speed}" 
+                                    <input type="radio" class="btn-check" name="speed"
+                                           id="speed_{speed}" value="{speed}"
                                            {'checked' if speed == default_settings["speed"] else ''}>
                                     <label class="btn btn-outline-primary" for="speed_{speed}">
                                         {settings["name"]}<br>
@@ -388,8 +339,8 @@ def debate():
                             <div class="btn-group w-100" role="group">
                                 """ + "".join([
         f'''
-                                    <input type="radio" class="btn-check" name="response_type" 
-                                           id="response_{rtype}" value="{rtype}" 
+                                    <input type="radio" class="btn-check" name="response_type"
+                                           id="response_{rtype}" value="{rtype}"
                                            {'checked' if rtype == default_settings["response_type"] else ''}>
                                     <label class="btn btn-outline-primary" for="response_{rtype}">
                                         {settings["name"]}<br>
@@ -406,8 +357,8 @@ def debate():
                                 """ + "".join([
         f'''
                                     <label class="tag">
-                                        <input type="checkbox" name="permissions[]" 
-                                               value="{perm}" 
+                                        <input type="checkbox" name="permissions[]"
+                                               value="{perm}"
                                                {'checked' if perm in default_settings["permissions"] else ''}>
                                         {desc}
                                     </label>
@@ -583,11 +534,7 @@ def start_new_debate():
         if len(selected_models) < 2:
             return jsonify({
                 'success': False,
-<<<<<<< HEAD:src/app.py
                 'error': 'Потрібно вибрати мінімум 2 моделі'
-=======
-                'error': 'Потрібно вибрати мінімум 2 м��д���лі'
->>>>>>> fix-cache:super/app.py
             })
 
         debate_id = len(debate_history) + 1
@@ -854,10 +801,6 @@ def create_admin():
         db.session.add(admin)
         db.session.commit()
 
-<<<<<<< HEAD:src/app.py
-
-from app import create_app
-from app.models import db, User
 
 app = create_app()
 
@@ -867,7 +810,7 @@ if __name__ == '__main__':
         try:
             db.create_all()
             print("Database tables created successfully")
-            
+
             # Создаем тестового пользователя если его нет
             if not User.query.filter_by(username='admin').first():
                 admin = User(username='admin', is_admin=True)
@@ -877,15 +820,5 @@ if __name__ == '__main__':
                 print("Admin user created successfully")
         except Exception as e:
             print(f"Error initializing database: {e}")
-    
+
     app.run(debug=True)
-=======
-# Initialize database with admin user
-with app.app_context():
-    db.create_all()
-    if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', is_admin=True)
-        admin.set_password('admin123')  # Change this password in production
-        db.session.add(admin)
-        db.session.commit()
->>>>>>> fix-cache:super/app.py
