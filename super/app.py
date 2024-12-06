@@ -23,7 +23,31 @@ from flask_admin.contrib.sqla import ModelView
 from models import db, User
 
 app = Flask(__name__)
+
+# Configure Flask and database
 app.config.from_object(Config)
+app.secret_key = 'your-secret-key-here'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize database
+db.init_app(app)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Create database tables within application context
+with app.app_context():
+    db.create_all()
+
+# Initialize admin
+admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
 
 # Configure CORS
 CORS(app,
@@ -180,7 +204,7 @@ def commands():
             <strong>Доступные темы:</strong><br>
             """ + " ".join([f'<a href="#" class="button">{topic}</a>' for topic in answers.keys()]) + """
         </div>
-        <p><strong>И��пользование:</strong> /спор &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
+        <p><strong>Использование:</strong> /спор &lt;тема&gt;:&lt;модель1&gt;,&lt;модель2&gt;</p>
     </div>
     
     <div class="command-block">
@@ -444,7 +468,7 @@ def start_new_debate():
         if len(selected_models) < 2:
             return jsonify({
                 'success': False,
-                'error': 'Потрібн�� вибрати мінімум 2 моделі'
+                'error': 'Потрібно вибрати мінімум 2 моделі'
             })
 
         debate_id = len(debate_history) + 1
@@ -522,7 +546,7 @@ class Model1(Cog):
                 available_topics = ", ".join(answers.keys())
                 await ctx.send(f"Укажите тему. Доступные темы: {available_topics}")
                 return
-            await спор(ctx, promt)
+            await спор(ctx, promt)  # Fixed the character encoding here
         except Exception as e:
             print(f"Error: {e}")
 
@@ -553,7 +577,7 @@ if __name__ == '__main__':
 
 @socketio.on('start_debate')
 def handle_debate_start(settings):
-    # Обработк�� начала сп��ра через WebSocket
+    # Обработка начала спора через WebSocket
     debate_id = len(debate_history) + 1
     debate_history[debate_id] = {
         'settings': settings,
@@ -703,16 +727,15 @@ def login():
         user = User.query.filter_by(username=request.form['username']).first()
         if user and user.check_password(request.form['password']):
             login_user(user)
-            return redirect(url_for('index'))
+            return redirect(url_for('home'))  # Changed from 'index' to 'home'
         flash('Invalid username or password')
-    return render_template('login.html')
-
+    return render_template('login.html', title='Login')
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('index'))
+    return redirect(url_for('home'))  # Changed from 'index' to 'home'
 
 # Создаем базу данных и админа при первом запуске
 
