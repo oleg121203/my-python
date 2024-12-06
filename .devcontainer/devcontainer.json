@@ -1,6 +1,6 @@
 {
     "name": "Python 3",
-    "image": "mcr.microsoft.com/devcontainers/python:1-3.11",
+    "image": "mcr.microsoft.com/devcontainers/python:1-3.12",
     "customizations": {
         "vscode": {
             "settings": {
@@ -15,37 +15,53 @@
                 ],
                 "python.linting.enabled": true,
                 "python.linting.pylintEnabled": true,
+                "python.linting.flake8Enabled": true,
+                "python.linting.flake8Args": [
+                    "--max-line-length=88",
+                    "--ignore=E203,W503"
+                ],
                 "python.sortImports.args": [
                     "--profile",
                     "black"
                 ],
                 "git.user.name": "Oleg Kizyma",
                 "git.user.email": "oleg1203@gmail.com",
-                "continue.previewMode": true
+                "continue.previewMode": true,
+                "python.analysis.languageServerMode": "default",
+                "python.analysis.indexing": true,
+                "python.analysis.autoImportCompletions": true,
+                "python.analysis.autoSearchPaths": true,
+                "python.analysis.completeFunctionParens": true,
+                "python.analysis.typeCheckingMode": "basic",
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": false,
+                "editor.suggest.snippetsPreventQuickSuggestions": false,
+                "editor.suggest.insertMode": "replace",
+                "editor.suggestSelection": "first",
+                "editor.tabCompletion": "on",
+                "editor.acceptSuggestionOnCommitCharacter": true,
+                "editor.acceptSuggestionOnEnter": "on",
+                "editor.codeActionsOnSave": {
+                    "source.fixAll": true
+                },
+                "editor.quickSuggestions": {
+                    "other": true,
+                    "comments": true,
+                    "strings": true
+                }
             },
             "extensions": [
-                "streetsidesoftware.code-spell-checker",
-                "KevinRose.vsc-python-indent",
-                "wholroyd.jinja",
-                "MS-CEINTL.vscode-language-pack-ru",
-                "donjayamanne.python-extension-pack",
-                "donjayamanne.python-environment-manager",
-                "ms-python.debugpy",
                 "ms-python.python",
                 "ms-python.vscode-pylance",
-                "VisualStudioExptTeam.intellicode-api-usage-examples",
-                "VisualStudioExptTeam.vscodeintellicode",
-                "dbaeumer.vscode-eslint",
-                "ms-azuretools.vscode-docker",
-                "batisteo.vscode-django",
-                "openai.openai-chatgpt-adhoc",
-                "ms-python.autopep8",
-                "njpwerner.autodocstring",
-                "Continue.continue",
-                "GitHub.copilot-chat",
-                "GitHub.copilot",
                 "ms-python.black-formatter",
                 "ms-python.isort",
+                "ms-python.autopep8",
+                "ms-python.flake8",
+                "ms-azuretools.vscode-docker",
+                "batisteo.vscode-django",
+                "dbaeumer.vscode-eslint",
+                "github.copilot",
+                "github.copilot-chat",
                 "sourcery.sourcery",
                 "eamodio.gitlens"
             ]
@@ -58,8 +74,17 @@
         }
     },
     "mounts": [
-        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
+        "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
     ],
-    "postCreateCommand": "sudo chown -R vscode:vscode /usr/local/lib/python3.11 && sudo apt update && sudo apt upgrade -y && sudo python3 -m pip install --upgrade pip && sudo pip3 install -r requirements.txt && chmod 600 ~/.ssh/id_rsa && chmod 644 ~/.ssh/id_rsa.pub && eval \"$(ssh-agent -s)\" && ssh-add ~/.ssh/id_rsa && git config --global user.name 'Oleg Kizyma' && git config --global user.email 'oleg1203@gmail.com'"
-    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+    "postCreateCommand": "/bin/bash -c \"set -e && \
+    apk add --no-cache python3 py3-pip && \
+    ln -sf python3 /usr/bin/python && \
+    python3 -m pip install --user --upgrade pip && \
+    pip install --user -r requirements.txt && \
+    pip install --user -r src/requirements.txt && \
+    mkdir -p ~/.ssh && \
+    touch ~/.ssh/id_rsa ~/.ssh/id_rsa.pub && \
+    chmod 600 ~/.ssh/id_rsa && \
+    chmod 644 ~/.ssh/id_rsa.pub\"",
+    "remoteUser": "vscode"
 }
