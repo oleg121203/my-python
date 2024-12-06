@@ -6,7 +6,7 @@
 from flask import Flask
 from auth_bp import auth_bp
 from config import Config
-from models import db
+from models import db, User
 from flask_login import LoginManager
 
 app = Flask(__name__)
@@ -22,6 +22,10 @@ login_manager.login_view = 'auth_bp.login'  # Обновлено на 'auth_bp.l
 
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 @app.route("/")
 def hello():
