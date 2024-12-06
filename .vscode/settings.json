@@ -1,3 +1,8 @@
 {
-    "sourcery.token": "user_xzE8TY7PbaYI_qfTp_1tWu84s09Geo0i1iMIDBa9teevIdLVZA0WNEz3i60"
+    "sourcery.token": "user_xzE8TY7PbaYI_qfTp_1tWu84s09Geo0i1iMIDBa9teevIdLVZA0WNEz3i60",
+    "launch": {
+        
+        "configurations": [],
+        "compounds": []
+    }
 }
