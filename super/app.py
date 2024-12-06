@@ -27,6 +27,14 @@ from auth_bp import auth_bp  # Import auth_bp from routes
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Initialize extensions
+db.init_app(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth_bp.login'
+
+# Register blueprints
 app.register_blueprint(auth_bp)
 
 # Configure Flask and database
@@ -178,7 +186,7 @@ def home():
 
 @app.route('/models')
 def models_page():
-    # Загружаем конфигурацию моделей из файла Continue
+    # За��ружаем конфигурацию моделей из файла Continue
     continue_config_path = os.path.expanduser('~/.continue/config.json')
     try:
         with open(continue_config_path, 'r') as f:
