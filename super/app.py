@@ -22,6 +22,7 @@ from flask_login import LoginManager, current_user, login_user, logout_user, log
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from models import db, User
+from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
 
@@ -161,7 +162,7 @@ def home():
     if current_user.is_authenticated:
         return render_template('home.html',
                             title='Головна',
-                            bot_status='Активний',
+                            bot_status='Акт��вний',
                             active_debates=len(debate_history),
                             user=current_user)
     return render_template('home.html',
@@ -212,7 +213,7 @@ def commands():
     </div>
     
     <div class="command-block">
-        <h3>Работа с библиотеками</h3>
+        <h3>Работа с библ����отеками</h3>
         <p>Получает инфо��мацию о программных библиотеках</p>
         <div class="topic-list">
             <strong>��оступные модели:</strong><br>
@@ -472,7 +473,7 @@ def start_new_debate():
         if len(selected_models) < 2:
             return jsonify({
                 'success': False,
-                'error': 'Потрібно вибрати мінімум 2 моделі'
+                'error': 'Потрібно вибрати мінімум 2 м��д��лі'
             })
 
         debate_id = len(debate_history) + 1
@@ -724,19 +725,49 @@ admin.add_view(SecureModelView(User, db.session))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+        
     if request.method == 'POST':
-        user = User.query.filter_by(username=request.form['username']).first()
-        if user and user.check_password(request.form['password']):
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('home'))  # Changed from 'index' to 'home'
-        flash('Invalid username or password')
-    return render_template('login.html', title='Login')
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('home'))
+            
+        flash('Невірне ім\'я користувача або пароль')
+    return render_template('login.html', title='Вхід')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+        
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if User.query.filter_by(username=username).first():
+            flash('Користувач вже існує')
+            return redirect(url_for('register'))
+            
+        user = User(username=username)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        
+        return redirect(url_for('login'))
+        
+    return render_template('register.html', title='Реєстрація')
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('home'))  # Changed from 'index' to 'home'
+    return redirect(url_for('home'))
 
 # Создаем базу данных и админа при первом запуске
 
@@ -747,5 +778,14 @@ def create_admin():
     if not User.query.filter_by(username='oleg').first():
         admin = User(username='oleg', is_admin=True)
         admin.set_password('oleg')
+        db.session.add(admin)
+        db.session.commit()
+
+# Initialize database with admin user
+with app.app_context():
+    db.create_all()
+    if not User.query.filter_by(username='admin').first():
+        admin = User(username='admin', is_admin=True)
+        admin.set_password('admin123')  # Change this password in production
         db.session.add(admin)
         db.session.commit()
