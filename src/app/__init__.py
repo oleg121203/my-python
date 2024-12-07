@@ -29,9 +29,9 @@ def create_app(config_class=Config):
     with app.app_context():
         # Register blueprints
         from .auth import bp as auth_bp
-        from .api import bp as api_bp
-        
         app.register_blueprint(auth_bp, url_prefix='/auth')
+        
+        from .api import bp as api_bp
         app.register_blueprint(api_bp, url_prefix='/api')
         
         # Create database tables
